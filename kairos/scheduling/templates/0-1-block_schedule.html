@@ -1,0 +1,21 @@
+{% extends '../base.html' %}
+
+{% block title %}
+    Bloquear horarios
+{% endblock %}
+
+<!-- AQUI TOCA ESTABLECER IS SE VA A USAR EL NAVBAR DE MANAGER O DE ADMIN, ASÍ QUE OJO -->
+
+{% block navbar %}
+    <!-- IF ES MANEGER -->
+    {% include '0-manager/navbar-manager.html' %} 
+
+    <!-- ELSE IF ES ADMIN -->
+    <!-- include etc etc navbar-damin -->
+{% endblock %}
+
+{% block content %}
+    <div>
+        Block schedule
+    </div>
+{% endblock %}
