@@ -1,25 +1,22 @@
 <nav class="navbar navbar-expand-lg navbar-light bg-light">
     <div class="container">
-      <a class="navbar-brand" href="#">Mi sitio web</a>
+      <a class="navbar-brand" href="{% url 'home_manager' %}">KAIROS LOGISTICS - GERENTE</a>
       <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
         <span class="navbar-toggler-icon"></span>
       </button>
       <div class="collapse navbar-collapse" id="navbarNav">
         <ul class="navbar-nav ms-auto">
           <li class="nav-item">
-            <a class="nav-link active" aria-current="page" href="#">Inicio</a>
+            <a class="nav-link" href="{% url 'reports' %}">| Reportes |</a>
           </li>
           <li class="nav-item">
-            <a class="nav-link" href="#">Reportes</a>
+            <a class="nav-link" href="{% url 'create_user' %}">| Crear usuarios |</a>
           </li>
           <li class="nav-item">
-            <a class="nav-link" href="#">Crear usuarios</a>
+            <a class="nav-link" href="{% url 'delete_user' %}">| Eliminar usuarios |</a>
           </li>
           <li class="nav-item">
-            <a class="nav-link" href="#">Eliminar usuarios</a>
-          </li>
-          <li class="nav-item">
-            <a class="nav-link" href="#">Bloquear horarios</a>
+            <a class="nav-link" href="{% url 'block_schedule' %}">| Bloquear horarios |</a>
           </li>
         </ul>
       </div>

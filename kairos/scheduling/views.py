@@ -1,4 +1,7 @@
 from django.shortcuts import render
+from .models import *
+from .forms import CreateUserForm
+from django.contrib import messages
 
 # Create your views here.
 from django.http import HttpResponse
@@ -40,7 +43,21 @@ def block_schedule(request):
     return render(request,template_name="0-1-block_schedule.html")
 
 def create_user(request):
-    return render(request,template_name="0-1-create_user.html")
+    form = CreateUserForm()
+    if request.method == "POST":
+        if form.is_valid():
+            rol = request.POST.get('rol') #Revisar que el name sea rol
+            form.save()
+            Actual_user = User.objects.get(username= request.POST["username"])
+            newProfile = Profile(user = Actual_user, rol=rol)
+            newProfile.save()
+            messages.success(request, '¡El usuario fue creado exitosamente!')
+            return render(request,template_name="0-1-create_user.html")
+        else:
+            messages.error(request, 'Error al crear el usuario, por favor verique la información')
+            return render(request,template_name="0-1-create_user.html", context={'form': form})
+
+    return render(request,template_name="0-1-create_user.html", context={'form': form})
 
 def delete_user(request):
     return render(request,template_name="0-1-delete_user.html")
