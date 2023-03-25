@@ -14,3 +14,42 @@ class Profile(models.Model):
 
     def __str__(self):
         return str(self.usuario.username)
+    
+class CVS(models.Model):
+    name = models.CharField(max_length=20) #largest name 16 characters
+
+    class Meta:
+        verbose_name = "cvs"
+        verbose_name_plural = "cvs"
+        db_table = "cvs"
+
+    def __str__(self):
+        return self.name
+
+class Turn(models.Model):
+    cvs = models.ForeignKey(CVS,on_delete=models.CASCADE, blank=False) # location of the service
+    typeTire = models.IntegerField(blank=False) # numeric convention for the type of tire
+    quantity = models.IntegerField(blank=False) # number of tires to change
+    rotation = models.BooleanField(blank=False) # aditional service (rotate maximum the same number of tires that you buy)
+    quantityRotate = models.IntegerField(blank=True) # number of tires to rotate
+    duration = models.IntegerField(blank=False) # time in minutes of the service
+    date = models.DateField(auto_now=False, auto_now_add=False,blank=False) # date when the service is going to be done
+    hour = models.TimeField(auto_now=False, auto_now_add=False,blank=False) # hour when the service is going to be done
+    bill = models.IntegerField(blank=False) # number of the bill
+    idCustomer = models.IntegerField(blank=False) # identification(CC) of the customer
+    nameCustomer = models.TextField(max_length=50,blank=False) # name of the customer
+    telCustomer = models.TextField(max_length=15,blank=False) # contact number of the customer
+    scheduledBy = models.ForeignKey(Profile,on_delete=models.CASCADE,blank=False,related_name="person_who_schedules") # person who scheduled
+    dateScheduled = models.DateTimeField(auto_now=False, auto_now_add=True,blank=False) #date when the service was scheduled 
+    modifiedBy = models.ForeignKey(Profile,on_delete=models.CASCADE,blank=True,related_name="person_who_modifies")  # person who modified the service 
+    dateModified = models.DateTimeField(auto_now=False, auto_now_add=False,blank=True) #date when the service was modified 
+    done = models.BooleanField(blank=True) # verification if the service get done
+    comment = models.TextField(max_length=300,blank=True) # comment about the service or the reason to don't provide the service
+
+    class Meta:
+        verbose_name = "turn"
+        verbose_name_plural = "turns"
+        db_table = "turn"
+
+    def __str__(self):
+        return self.bill + ' - ' + self.cvs.name
