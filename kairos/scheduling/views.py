@@ -66,48 +66,59 @@ def delete_user(request):
     return render(request,template_name="0-1-delete_user.html")
 
 def reports(request):
+    query = Turn.objects.all()
     workBook = Workbook()
-    flag = True
+    workSheet = workBook.active
+    workSheet.title = 'Hoja1' #Change name of first sheet
+
+    
+    #Title of the doc
+    workSheet['A2'] = 'REPORTE MONTAJE Y BALANCEO'
+    workSheet['A2'].font = Font(name='Arial', size=12, bold=True, color='F79646')
+    workSheet['A2'].alignment = Alignment(horizontal="center", vertical="center")
+    workSheet.merge_cells('A2:E2')
+
+    #Create first row of the table with the data
+    workSheet['B4'] = 'Nombre'
+    workSheet['B4'].font = Font(name='Arial', size=10, bold=True)
+    workSheet['B4'].alignment = Alignment(horizontal="center", vertical="center")
+    workSheet['B4'].border = Border(left=Side(border_style="thin"), right=Side(border_style="thin"), top=Side(border_style="thin"), bottom=Side(border_style="thin"))
+
+    workSheet['C4'] = 'Llantas'
+    workSheet['C4'].font = Font(name='Arial', size=10, bold=True)
+    workSheet['C4'].alignment = Alignment(horizontal="center", vertical="center")
+    workSheet['C4'].border = Border(left=Side(border_style="thin"), right=Side(border_style="thin"), top=Side(border_style="thin"), bottom=Side(border_style="thin"))
+
+    workSheet['D4'] = 'Realizado'
+    workSheet['D4'].font = Font(name='Arial', size=10, bold=True)
+    workSheet['D4'].alignment = Alignment(horizontal="center", vertical="center")
+    workSheet['D4'].border = Border(left=Side(border_style="thin"), right=Side(border_style="thin"), top=Side(border_style="thin"), bottom=Side(border_style="thin"))
+
+    workSheet['E4'] = 'Duración'
+    workSheet['E4'].font = Font(name='Arial', size=10, bold=True)
+    workSheet['E4'].alignment = Alignment(horizontal="center", vertical="center")
+    workSheet['E4'].border = Border(left=Side(border_style="thin"), right=Side(border_style="thin"), top=Side(border_style="thin"), bottom=Side(border_style="thin"))
+
     rowController = 5 #to keep track of the row we will write on
-    for i in range(1,10):
-        if flag:
-            workSheet = workBook.active
-            workSheet.title = 'Hoja1' #Change name of first sheet
-            flag = False
-        else:
-            workSheet = workBook.create_sheet('Hoja'+str(i))
-        
-        #Title of the doc
-        workSheet['A2'] = 'REPORTE MONTAJE Y BALANCEO'
-        workSheet['A2'].font = Font(name='Arial', size=12, bold=True, color='F79646')
-        workSheet['A2'].alignment = Alignment(horizontal="center", vertical="center")
-        workSheet.merge_cells('A2:E2')
-
-        #Create first row of the table with the data
-        workSheet['B4'] = 'Nombre'
-        workSheet['B4'].font = Font(name='Arial', size=10, bold=True)
-        workSheet['B4'].alignment = Alignment(horizontal="center", vertical="center")
-        workSheet['B4'].border = Border(left=Side(border_style="thin"), right=Side(border_style="thin"), top=Side(border_style="thin"), bottom=Side(border_style="thin"))
-
-        workSheet['C4'] = 'Llantas'
-        workSheet['C4'].font = Font(name='Arial', size=10, bold=True)
-        workSheet['C4'].alignment = Alignment(horizontal="center", vertical="center")
-        workSheet['C4'].border = Border(left=Side(border_style="thin"), right=Side(border_style="thin"), top=Side(border_style="thin"), bottom=Side(border_style="thin"))
-
-        workSheet['D4'] = 'Fecha'
-        workSheet['D4'].font = Font(name='Arial', size=10, bold=True)
-        workSheet['D4'].alignment = Alignment(horizontal="center", vertical="center")
-        workSheet['D4'].border = Border(left=Side(border_style="thin"), right=Side(border_style="thin"), top=Side(border_style="thin"), bottom=Side(border_style="thin"))
-
-        workSheet['E4'] = 'Hora'
-        workSheet['E4'].font = Font(name='Arial', size=10, bold=True)
-        workSheet['E4'].alignment = Alignment(horizontal="center", vertical="center")
-        workSheet['E4'].border = Border(left=Side(border_style="thin"), right=Side(border_style="thin"), top=Side(border_style="thin"), bottom=Side(border_style="thin"))
-
+    for q in query:
         #Fill in the data of the table
         workSheet.cell(row=rowController, column=2).alignment = Alignment(horizontal="center", vertical="center")
         workSheet.cell(row=rowController, column=2).font = Font(name='Arial', size=10)
-        workSheet.cell(row=rowController, column=2).value = "Hola"
+        workSheet.cell(row=rowController, column=2).value = q.nameCustomer
+
+        workSheet.cell(row=rowController, column=3).alignment = Alignment(horizontal="center", vertical="center")
+        workSheet.cell(row=rowController, column=3).font = Font(name='Arial', size=10)
+        workSheet.cell(row=rowController, column=3).value = q.quantity
+
+        workSheet.cell(row=rowController, column=4).alignment = Alignment(horizontal="center", vertical="center")
+        workSheet.cell(row=rowController, column=4).font = Font(name='Arial', size=10)
+        workSheet.cell(row=rowController, column=4).value = q.done
+
+        workSheet.cell(row=rowController, column=5).alignment = Alignment(horizontal="center", vertical="center")
+        workSheet.cell(row=rowController, column=5).font = Font(name='Arial', size=10)
+        workSheet.cell(row=rowController, column=5).value = q.duration
+
+        rowController += 1
 
     name = "Reporte.xlsx"
     response = HttpResponse(content_type="application/ms-excel")
