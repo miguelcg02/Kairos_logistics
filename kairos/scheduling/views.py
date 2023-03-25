@@ -65,7 +65,7 @@ def create_user(request):
 def delete_user(request):
     return render(request,template_name="0-1-delete_user.html")
 
-def reports(request):
+def createReport(request):
     query = Turn.objects.all()
     workBook = Workbook()
     workSheet = workBook.active
@@ -126,6 +126,10 @@ def reports(request):
     response["Content-Disposition"] = content
     workBook.save(response)
     return response
+    
+
+def reports(request):
+    #createReport(request)
     return render(request,template_name="0-reports.html")
 
 def see_schedules(request):
