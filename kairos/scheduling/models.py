@@ -13,7 +13,7 @@ class Profile(models.Model):
         db_table = "profile"
 
     def __str__(self):
-        return str(self.usuario.username)
+        return str(self.user.username)
     
 class CVS(models.Model):
     name = models.CharField(max_length=20) #largest name 16 characters
@@ -52,4 +52,4 @@ class Turn(models.Model):
         db_table = "turn"
 
     def __str__(self):
-        return self.bill + ' - ' + self.cvs.name
+        return str(self.bill) + ' - ' + self.cvs.name
