@@ -202,7 +202,11 @@ def createReport(request):
 
         workSheet.cell(row=rowController, column=9).alignment = Alignment(horizontal="center", vertical="center")
         workSheet.cell(row=rowController, column=9).font = Font(name='Arial', size=10)
-        workSheet.cell(row=rowController, column=9).value = q.done
+        if(q.done is True):
+            workSheet.cell(row=rowController, column=9).value = "Si"
+        else:
+            workSheet.cell(row=rowController, column=9).value = "No"
+        
 
         workSheet.cell(row=rowController, column=10).alignment = Alignment(horizontal="center", vertical="center")
         workSheet.cell(row=rowController, column=10).font = Font(name='Arial', size=10)
@@ -210,7 +214,12 @@ def createReport(request):
 
         workSheet.cell(row=rowController, column=11).alignment = Alignment(horizontal="center", vertical="center")
         workSheet.cell(row=rowController, column=11).font = Font(name='Arial', size=10)
-        workSheet.cell(row=rowController, column=11).value = q.typeTire
+        if(q.typeTire == 1):
+            workSheet.cell(row=rowController, column=11).value = "Carro"
+        elif(q.typeTire == 2):
+            workSheet.cell(row=rowController, column=11).value = "Camión"
+        elif(q.typeTire == 3):
+            workSheet.cell(row=rowController, column=11).value = "Moto"
 
         workSheet.cell(row=rowController, column=12).alignment = Alignment(horizontal="center", vertical="center")
         workSheet.cell(row=rowController, column=12).font = Font(name='Arial', size=10)
@@ -218,7 +227,10 @@ def createReport(request):
 
         workSheet.cell(row=rowController, column=13).alignment = Alignment(horizontal="center", vertical="center")
         workSheet.cell(row=rowController, column=13).font = Font(name='Arial', size=10)
-        workSheet.cell(row=rowController, column=13).value = q.rotation
+        if(q.rotation is True):
+            workSheet.cell(row=rowController, column=13).value = "Si"
+        else:
+            workSheet.cell(row=rowController, column=13).value = "No"
 
         workSheet.cell(row=rowController, column=14).alignment = Alignment(horizontal="center", vertical="center")
         workSheet.cell(row=rowController, column=14).font = Font(name='Arial', size=10)
@@ -226,7 +238,7 @@ def createReport(request):
 
         workSheet.cell(row=rowController, column=15).alignment = Alignment(horizontal="center", vertical="center")
         workSheet.cell(row=rowController, column=15).font = Font(name='Arial', size=10)
-        workSheet.cell(row=rowController, column=15).value = q.duration
+        workSheet.cell(row=rowController, column=15).value = str(q.duration) + " min."
 
         workSheet.cell(row=rowController, column=16).alignment = Alignment(horizontal="center", vertical="center")
         workSheet.cell(row=rowController, column=16).font = Font(name='Arial', size=10)
@@ -234,25 +246,21 @@ def createReport(request):
 
         workSheet.cell(row=rowController, column=17).alignment = Alignment(horizontal="center", vertical="center")
         workSheet.cell(row=rowController, column=17).font = Font(name='Arial', size=10)
-        workSheet.cell(row=rowController, column=17).value = q.dateScheduled.isoformat()
+        workSheet.cell(row=rowController, column=17).value = str(q.dateScheduled.date().isoformat()) + ", " + str(q.dateScheduled.time().isoformat('minutes'))
 
+        workSheet.cell(row=rowController, column=18).alignment = Alignment(horizontal="center", vertical="center")
+        workSheet.cell(row=rowController, column=18).font = Font(name='Arial', size=10)
         if(q.modifiedBy is None):
-            workSheet.cell(row=rowController, column=18).alignment = Alignment(horizontal="center", vertical="center")
-            workSheet.cell(row=rowController, column=18).font = Font(name='Arial', size=10)
             workSheet.cell(row=rowController, column=18).value = ""
         else:
-            workSheet.cell(row=rowController, column=18).alignment = Alignment(horizontal="center", vertical="center")
-            workSheet.cell(row=rowController, column=18).font = Font(name='Arial', size=10)
             workSheet.cell(row=rowController, column=18).value = q.modifiedBy.user.username
 
+        workSheet.cell(row=rowController, column=19).alignment = Alignment(horizontal="center", vertical="center")
+        workSheet.cell(row=rowController, column=19).font = Font(name='Arial', size=10)
         if(q.dateModified is None):
-            workSheet.cell(row=rowController, column=19).alignment = Alignment(horizontal="center", vertical="center")
-            workSheet.cell(row=rowController, column=19).font = Font(name='Arial', size=10)
             workSheet.cell(row=rowController, column=19).value = ""
         else:
-            workSheet.cell(row=rowController, column=19).alignment = Alignment(horizontal="center", vertical="center")
-            workSheet.cell(row=rowController, column=19).font = Font(name='Arial', size=10)
-            workSheet.cell(row=rowController, column=19).value = q.dateModified.isoformat()
+            workSheet.cell(row=rowController, column=19).value = str(q.dateModified.date().isoformat()) + ", " + str(q.dateModified.time().isoformat('minutes'))
 
         rowController += 1
 
