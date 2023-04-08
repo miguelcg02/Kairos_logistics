@@ -1,0 +1,144 @@
+body{
+    font-family: 'Roboto Condensed', sans-serif;
+}
+
+body::-webkit-scrollbar{
+    width: 1em;
+    background-color: #c1c1c1;
+}
+body::-webkit-scrollbar-thumb{
+    border-radius: 1em;
+    background-color: #9b9b9b;
+}
+
+#sc-container{
+    margin: 1em;
+}
+
+#sc-title{
+    border-radius: 2em 2em 0 0;
+    background-color: #383d3b;
+    color: white;
+    margin: 0;
+
+    text-align: center;
+}
+
+#sc-content{
+    display: grid;
+
+    grid-template-columns: repeat(8,1fr);
+}
+
+.scroll-container{
+    background-color: #c1c1c1;
+    grid-column: 2/9;
+
+    display: grid;
+    grid-template-columns: repeat(7,1fr);
+
+    border-radius: 0 0 2em 0;
+
+    overflow-x: scroll;
+}
+.scroll-container::-webkit-scrollbar{
+    width: 1em;
+    background-color: transparent;
+}
+.scroll-container::-webkit-scrollbar-thumb{
+    border-radius: 2em;
+    background-color: #9b9b9b;
+}
+
+.sc-hours,.sc-days{
+    background-color: #c1c1c1;
+    display: grid;
+
+    grid-template-rows: repeat(690,0.1em);
+}
+
+.sc-subtitle{
+    background-color: #9b9b9b;
+
+    border-left: thin dashed black;
+
+    text-align: center;
+    line-height: 150%;
+    font-weight: bolder;
+}
+
+.sc-hour, .free{
+    background-color: #c1c1c1;
+
+    text-align: center;
+}
+
+.ln{
+    border-top: thin dashed #9b9b9b;
+}
+
+.turn{
+    background-color: #d18227;
+
+    border-radius: 5px;
+
+    text-align: center;
+
+    min-width: max-content;
+    width: auto;
+
+    overflow-y: scroll;
+}
+
+.turn::-webkit-scrollbar{
+    width: 0.5em;
+}
+
+.turn::-webkit-scrollbar:horizontal{
+    display: none;
+}
+
+.turn::-webkit-scrollbar-thumb{
+    border-radius: 0.5em;
+    background-color: antiquewhite;
+}
+
+.turn p{
+    margin:0.25em;
+}
+
+.turn::-webkit-scrollbar-button{
+    display: none;
+}
+
+.turn::-webkit-scrollbar-corner{
+    display: none;
+}
+
+
+
+.sc-event{
+    border-left: thin dashed black;
+}
+
+.block{
+    background-color: #9B9B9B;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='50' height='50' viewBox='0 0 20 20'%3E%3Cg %3E%3Cpolygon fill='%23C1C1C1' points='20 10 10 0 0 0 20 20'/%3E%3Cpolygon fill='%23C1C1C1' points='0 10 0 20 10 20'/%3E%3C/g%3E%3C/svg%3E");
+}
+
+.info{
+    width: auto;
+    margin-right: 5em;
+    align-items: baseline;
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr 1fr
+}
+
+.modal-header{
+    background-color: #9b9b9b;
+    color: white;
+}
+
+.modal-content p,.modal-content h2,.modal-content hr{
+    color: #383d3b;
+}
