@@ -277,10 +277,9 @@ def createReport(request):
     workBook.save(response)
     return response
     
-
 def reports(request):
     #createReport(request)
-    return render(request,template_name="0-reports.html")
+    return render(request,template_name="0-reports.html", context={'role':getRole(request)})
 
 #---------- auxiliar methods for see_schedules-------------------#
 def delta2time(delta):

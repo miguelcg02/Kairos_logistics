@@ -1,0 +1,35 @@
+.panel-primary{
+    margin: 1em;
+    border-radius: 0.3em;
+}
+
+.panel-heading{
+    border-radius: 0.1em;
+    background-color: #f19245;
+    font-weight: bolder;
+    color: white;
+    padding-left: 0.5em;
+    padding-top: 0.7em;
+    height: 3em;
+    font-size: 110%;
+}
+
+.panel-body{
+    padding-top: 0em;
+    padding-left: 0.5em;
+    padding-right: 0.5em;
+    padding-bottom: 0.5em;
+    border-radius: 0.1em;
+    background-color: rgb(199, 199, 199);
+}
+
+.row{
+    padding-top:1em;
+}
+
+.panel-footer{
+    padding: 1em;
+    border-radius: 0.1em;
+    background-color: rgb(199, 199, 199);
+    text-align: right;
+}
