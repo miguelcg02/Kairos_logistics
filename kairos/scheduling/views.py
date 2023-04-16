@@ -91,9 +91,9 @@ def delta2time(delta):
         hour=str(hours)+':0'+str(minutes)
 
     if(flagNoon):
-        hour+=" am"
+        hour+=" AM"
     else:
-        hour+=" pm"
+        hour+=" PM"
 
     return hour
 
@@ -141,21 +141,20 @@ def processData(event):
     #we get date
     months=["Enero","Febrero","Marzo","Abril","Mayo","Junio","Julio","Agosto","Septiembre","Octubre","Noviembre","Diciembre"]
     days=["Lunes","Martes","Miércoles","Jueves","Viernes","Sábado"]
-    date = event['date']
+    date = event.date
 
     strDate=days[date.weekday()]+", "+str(date.day)+" de "+months[date.month-1]+", "+str(date.year)
     info.append(strDate)
     #we get cvs
-    cvs=CVS.objects.get(id=event['cvs_id'])
-    info.append(cvs.name)
+    info.append(event.cvs.name)
     #we get hour
-    hour=event['hour']
-    info.append(delta2time(timedelta(hours=hour.hour,minutes=hour.minute)))
+    hour=event.hour
+    info.append(hour.strftime("%I:%M %p"))
     #we get duration
-    duration=str(event['duration'])+" minutos"
+    duration=str(event.duration)+" minutos"
     info.append(duration)
     #we get typeTire
-    typeTire=event['typeTire']
+    typeTire=event.typeTire
     if(typeTire==1):
         typeTire="Automóvil"
     elif(typeTire==2):
@@ -164,44 +163,42 @@ def processData(event):
         typeTire="Camión"
     info.append(typeTire)
     #we get quantity
-    quantity=str(event['quantity'])+" llantas"
+    quantity=str(event.quantity)+" llantas"
     info.append(quantity)
     #we get rotation
-    rotation=event['rotation']
+    rotation=event.rotation
     if(rotation):
         rotation="Sí"
     else:
         rotation="No"
     info.append(rotation)
     #we get quantityRotate
-    quantityRotate=str(event['quantityRotate'])+" llantas"
+    quantityRotate=str(event.quantityRotate)+" llantas"
     info.append(quantityRotate)
     #we get bill
-    bill=str(event['bill'])
+    bill=str(event.bill)
     info.append(bill)
     #we get idCustomer
-    idCustomer=str(event['idCustomer'])
+    idCustomer=str(event.idCustomer)
     info.append(idCustomer)
     #we get nameCustomer
-    info.append(event['nameCustomer'])
+    info.append(event.nameCustomer)
     #we get telCustomer
-    info.append(event['telCustomer'])
+    info.append(event.telCustomer)
     #we get scheduledBy
-    scheduledBy=Profile.objects.get(id=event['scheduledBy_id'])
-    scheduledBy=scheduledBy.user.username
+    scheduledBy=event.scheduledBy.user.username
     info.append(scheduledBy)
     #we get dateScheduled
-    dateScheduled=event['dateScheduled']
+    dateScheduled=event.dateScheduled
     info.append(dateScheduled.strftime("%d/%m/%Y a las %I:%M %p"))
     #we get modifiedBy
-    if(event['modifiedBy_id']):#revisar que haya modificado
-        modifiedBy=Profile.objects.get(id=event['modifiedBy_id'])
-        modifiedBy=modifiedBy.user.username
+    if(event.modifiedBy):#revisar que haya modificado
+        modifiedBy=event.modifiedBy.user.username
         info.append(modifiedBy)
     else:
         info.append(" ")
     #we get dateModified
-    dateModified=event['dateModified']
+    dateModified=event.dateModified
     if(dateModified):#revisar que haya modificado
         info.append(dateModified.strftime("%d/%m/%Y a las %I:%M %p"))
     else:
@@ -209,7 +206,7 @@ def processData(event):
 
     return info
 
-def see_schedules(request):
+def toSee_schedules(cvsName):
     #events' array (freetime and services) for the context
     sc_days=[[],[],[],[],[],[],[]]
     #we start looking for the day of the week
@@ -236,14 +233,14 @@ def see_schedules(request):
         sc_days[contDay].append(newSC_event)
 
         #we get actualDate's agenda
-        agenda=Turn.objects.filter(date=actualDate).values()
+        agenda=Turn.objects.filter(date=actualDate).filter(cvs__name=cvsName)
 
         for event in agenda:
-            beg=timedelta(hours=event['hour'].hour,minutes=event['hour'].minute)
+            beg=timedelta(hours=event.hour.hour,minutes=event.hour.minute)
             fillFree(ti,beg,sc_days[contDay])
 
             #finally we add the service
-            finish=timedelta(minutes=event['duration'])
+            finish=timedelta(minutes=event.duration)
             finish+=beg
             debugEvent(False,beg,finish)
 
@@ -274,10 +271,43 @@ def see_schedules(request):
         actualDate+=timedelta(days=1)
         print("---------end day------------")
 
-    return render(request,template_name="1-2-3-see_schedules.html", context={'sc_days':sc_days,'role':getRole(request)})
+    return sc_days
+
+def see_schedules(request):
+    if(request.method=='POST' and request.POST.get('sc-select')):
+        cvsName=request.POST.get('sc-select')
+        #events' array (freetime and services) for the context
+        sc_days=toSee_schedules(cvsName)
+        return render(request,template_name="1-2-3-see_schedules.html", context={'cvsName':cvsName,'sc_days':sc_days,'role':getRole(request)})
+    else:
+        return render(request,template_name="1-2-3-see_schedules.html", context={'role':getRole(request)})
+
 
 def asign_turns(request):
-    return render(request,template_name="1-2-asign_turns.html")
+    if(request.method=='POST' and request.POST.get('sc-select')):
+        cvsName=request.POST.get('sc-select')
+        #events' array (freetime and services) for the context
+        sc_days=toSee_schedules(cvsName)
+        return render(request,template_name="1-2-asign_turns.html", context={'cvsName':cvsName,'sc_days':sc_days,'role':getRole(request)})
+    else:
+        return render(request,template_name="1-2-asign_turns.html",context={'role':getRole(request)})   
+
+def time_turns(request):
+    if(request.method=='POST' and request.POST.get('cvsName')):
+        cvsName=request.POST.get('cvsName')
+        #events' array (freetime and services) for the context
+        sc_days=toSee_schedules(cvsName)
+        return render(request,template_name="1-2-time_turns.html", context={'cvsName':cvsName,'sc_days':sc_days,'role':getRole(request)})
+    else:
+        return render(request,template_name="1-2-time_turns.html",context={'role':getRole(request)})   
+def select_turns(request):
+    if(request.method=='POST' and request.POST.get('cvsName')):
+        cvsName=request.POST.get('cvsName')
+        #events' array (freetime and services) for the context
+        sc_days=toSee_schedules(cvsName)
+        return render(request,template_name="1-2-select_turns.html", context={'cvsName':cvsName,'sc_days':sc_days,'role':getRole(request)})
+    else:
+        return render(request,template_name="1-2-select_turns.html",context={'role':getRole(request)})   
 
 def modify_schedules(request):
     return render(request,template_name="1-modify_schedules.html")

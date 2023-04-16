@@ -1,16 +1,4 @@
-body{
-    font-family: 'Roboto Condensed', sans-serif;
-}
-
-body::-webkit-scrollbar{
-    width: 1em;
-    background-color: #c1c1c1;
-}
-body::-webkit-scrollbar-thumb{
-    border-radius: 1em;
-    background-color: #9b9b9b;
-}
-
+/* for schedule */
 #sc-container{
     margin: 1em;
 }
@@ -78,7 +66,7 @@ body::-webkit-scrollbar-thumb{
 }
 
 .turn{
-    background-color: #d18227;
+    background-color: #E9862F;
 
     border-radius: 5px;
 
@@ -114,8 +102,6 @@ body::-webkit-scrollbar-thumb{
 .turn::-webkit-scrollbar-corner{
     display: none;
 }
-
-
 
 .sc-event{
     border-left: thin dashed black;

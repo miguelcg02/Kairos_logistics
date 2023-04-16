@@ -18,6 +18,8 @@ urlpatterns = [
     path('delete_user/',views.delete_user,name='delete_user'),
     path('see_schedules/',views.see_schedules,name='see_schedules'),
     path('asign_turns/',views.asign_turns,name='asign_turns'),
+    path('time_turns/',views.time_turns,name='time_turns'),
+    path('select_turns/',views.select_turns,name='select_turns'),
     path('modify_schedules/',views.modify_schedules,name='modify_schedules'),
     path('validate_service_provided/',views.validate_service_provided,name='validate_service_provided'),
 

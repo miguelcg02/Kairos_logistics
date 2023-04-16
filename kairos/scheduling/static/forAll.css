@@ -1,0 +1,27 @@
+body{
+    display: grid;
+    font-family: 'Roboto Condensed', sans-serif;
+}
+
+body::-webkit-scrollbar{
+    width: 1em;
+    background-color: #c1c1c1;
+}
+body::-webkit-scrollbar-thumb{
+    border-radius: 1em;
+    background-color: #9b9b9b;
+}
+
+nav{
+    background-color: #E9862F;
+}
+
+/* our custom */
+.navbar-brand, .nav-link, .navbar-brand:hover{
+    color: white !important;
+}
+
+.nav-link:hover{
+    color: black !important;
+}
+
