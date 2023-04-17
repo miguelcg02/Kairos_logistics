@@ -49,10 +49,10 @@
                     <form method="post">
                         <div class="form-group">
                             <label class="control-label fw-bold">CVS</label>
-                            <select id="cvsChosen" name="cvsChosen" class="form-control selectpicker" multiple data-live-search="true" placeholder="Seleccione los CVS...">
-                                <option value="1">One</option>
-                                <option value="2">Two</option>
-                                <option value="3">Three</option>
+                            <select id="cvsOptions" name="cvsOptions" class="form-control selectpicker" multiple data-live-search="true" placeholder="Seleccione los CVS...">
+                                {% for cvs in cvsList %}
+                                    <option value="cvsChosen">{{ cvs.name }}</option>
+                                {% endfor %} 
                             </select>
                         </div>
                     </form>

@@ -279,7 +279,8 @@ def createReport(request):
     
 def reports(request):
     #createReport(request)
-    return render(request,template_name="0-reports.html", context={'role':getRole(request)})
+    a = CVS.objects.all()
+    return render(request,template_name="0-reports.html", context={'role':getRole(request), 'cvsList':a})
 
 #---------- auxiliar methods for see_schedules-------------------#
 def delta2time(delta):
