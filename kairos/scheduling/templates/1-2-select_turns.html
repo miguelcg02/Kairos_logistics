@@ -1,0 +1,125 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block styles %}
+<link rel="stylesheet" href="{% static 'schedules.css'%}">
+<link rel="stylesheet" href="{% static 'asign_turns.css'%}">
+{% endblock %}
+
+{% block title %}
+    Ver horarios
+{% endblock %}
+
+<!-- Selecting navbar -->
+{% block navbar %}
+    <!-- IF MANAGER -->
+    {% if role == 0 %}
+        {% include '0-manager/navbar-manager.html' %} 
+    {% endif %}
+    <!-- IF ADMIN -->
+    {% if role == 1 %}
+        {% include '1-admin\navbar-admin.html' %} 
+    {% endif %}
+    <!-- IF ADVISER -->
+    {% if role == 2 %}
+        {% include '2-adviser\navbar-adviser.html' %} 
+    {% endif %}
+    <!-- IF OPERATOR -->
+    {% if role == 3 %}
+        {% include '3-operator\navbar-operator.html' %} 
+    {% endif %}
+{% endblock %}
+
+{% block content %}
+    <div class="full-container">
+        <div class="sc-displayer">
+            <h2>Previsualización del horario</h2>
+            {% if cvsName %} 
+                {% include 'base_schedule.html' %}
+            {% endif %}
+        </div>
+        <div class="form-displayer">
+            <!-- section to see the calculated time for the service -->
+            <form style="margin:  2em;" action="" method="post">
+                {%csrf_token%}
+                <!-- info to keep -->
+                <input type="hidden" name="cvsName" value="{{cvsName}}">
+                <input type="hidden" name="typeTire" value="{{typeTire}}">
+                <input type="hidden" name="quantity" value="{{quantity}}">
+                <input type="hidden" name="rotation" value="{{rotation}}">
+                <input type="hidden" name="quantityRotate" value="{{quantityRotate}}">
+                <input type="hidden" name="duration" value="{{duration}}">
+
+                <h2>Fecha y hora</h2>
+                <div class="card" >
+                    <div class="card-body">
+                        <h5 class="card-title">Horarios recomendados</h5>
+                        <h6 class="card-subtitle mb-2 text-body-secondary">Recuerde que los horarios presentados se tienen en cuenta de la siguiente manera: <br> duración + 5 minutos de descanso</h6>
+                        <!-- content space for the recommendations -->
+                        <!-- falta el for -->
+                        <p class="card-text">Some quick</p>
+                    </div>
+                </div>
+                <div class="form-floating">
+                    <input class="form-control" type="date" name="date" id="date">
+                    <label for="date">Fecha</label>
+                </div>
+                <div class="form-floating">
+                    <input class="form-control" type="time" name="hour" id="hour">
+                    <label for="hour">Hora</label>
+                </div>
+                <h2>Información de la venta</h2>
+                <div class="form-floating">
+                    <input class="form-control" type="number" name="bill" id="bill">
+                    <label for="bill">Número factura</label>
+                </div>
+                <div class="form-floating">
+                    <input class="form-control" type="number" name="idCustomer" id="idCustomer">
+                    <label for="idCustomer">Cédula cliente</label>
+                </div>
+                <div class="form-floating">
+                    <input class="form-control" type="text" name="nameCustomer" id="nameCustomer">
+                    <label for="nameCustomer">Nombre cliente</label>
+                </div>
+                <div class="form-floating">
+                    <input class="form-control" type="text" name="telCustomer" id="telCustomer">
+                    <label for="telCustomer">Teléfono de contacto</label>
+                </div>
+                <!-- start confirm modal -->
+                    <!-- Button trigger modal -->
+                    <button type="button" class="mt-2 btn btn-secondary btn-outline-light position-absolute end-0 " data-bs-toggle="modal" data-bs-target="#staticBackdrop">
+                        Asignar turno
+                    </button>
+                    
+                    <!-- Modal -->
+                    <div class="modal fade" id="staticBackdrop" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="staticBackdropLabel" aria-hidden="true">
+                        <div class="modal-dialog modal-dialog-centered">
+                            <div class="modal-content">
+                                <div class="modal-header">
+                                <h1 class="modal-title fs-5" id="staticBackdropLabel">Confirmación del turno</h1>
+                                </div>
+                                <div class="modal-body">
+                                <p>¿Está seguro que desea confirmar el turno?</p>
+                                </div>
+                                <div class="modal-footer">
+                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+                                <button type="submit" class="btn btn-confirm">Confirmar</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                <!-- end confirm modal -->
+            </form><br>
+            <form action="{% url 'time_turns' %}" method="post">
+                {%csrf_token%}
+                <!-- info to keep -->
+                <input type="hidden" name="cvsName" value="{{cvsName}}">
+                <input type="hidden" name="typeTire" value="{{typeTire}}">
+                <input type="hidden" name="quantity" value="{{quantity}}">
+                <input type="hidden" name="rotation" value="{{rotation}}">
+                <input type="hidden" name="quantityRotate" value="{{quantityRotate}}">
+                <button type="submit" class="mt-2 btn btn-secondary btn-outline-light position-absolute end-0 ">Volver</button>
+            </form>
+        </div>
+    </div>
+{% endblock %}

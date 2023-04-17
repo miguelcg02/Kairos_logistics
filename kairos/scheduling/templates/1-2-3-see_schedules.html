@@ -2,7 +2,7 @@
 {% load static %}
 
 {% block styles %}
-    <link rel="stylesheet" href="{% static '1-2-3-see_schedules.css'%}">
+    <link rel="stylesheet" href="{% static 'schedules.css'%}">
 {% endblock %}
 
 {% block title %}
@@ -30,83 +30,36 @@
 {% endblock %}
 
 {% block content %}
-<div id="sc-container">
-    <h1 id="sc-title">HORARIO</h1>
-    <div id="sc-content">
-        <div class="sc-hours" style="border-bottom-left-radius: 2em">
-            <div class="sc-subtitle" style="grid-row: 1/31; border-left-color: #9b9b9b;"></div>
-            <div class="sc-hour block" style="grid-row: 31/76;">7:00am</div>
-            <div class="sc-hour" style="grid-row: 76/91;"></div>
-            <div class="sc-hour ln" style="grid-row: 91/151;">8:00am</div>
-            <div class="sc-hour ln" style="grid-row: 151/211;">9:00am</div>
-            <div class="sc-hour ln" style="grid-row: 211/271;">10:00am</div>
-            <div class="sc-hour ln" style="grid-row: 271/331;">11:00am</div>
-            <div class="sc-hour ln" style="grid-row: 331/391;">12:00pm</div>
-            <div class="sc-hour ln" style="grid-row: 391/451;">1:00pm</div>
-            <div class="sc-hour ln" style="grid-row: 451/511;">2:00pm</div>
-            <div class="sc-hour ln" style="grid-row: 511/571;">3:00pm</div>
-            <div class="sc-hour ln" style="grid-row: 571/631;">4:00pm</div>
-            <div class="sc-hour ln" style="grid-row: 631/646;position:sticky;">5:00pm</div>
-            <div class="sc-hour block" style="grid-row: 646/691;border-bottom-left-radius: 2em"></div>
+    <!-- section to select the cvs -->
+    <form style="margin: 5em 2em;" action="" method="post">
+        {%csrf_token%}
+        <h2>Selección de horario</h2>
+        <div class="form-floating">
+            <select class="form-select" id="sc-select" name="sc-select" aria-label="select cvs">
+                <option selected></option>
+                <!-- posible optimización para nombres... requiere más procesamiento -->
+                <option value="BARRANQUILLA">BARRANQUILLA</option>
+                <option value="BOGOTA FONTIBON">BOGOTA FONTIBON</option>
+                <option value="BOGOTA NORTE">BOGOTA NORTE</option>
+                <option value="BOGOTA SUR">BOGOTA SUR</option>
+                <option value="BUCARAMANGA">BUCARAMANGA</option>
+                <option value="CALI">CALI</option>
+                <option value="CARTAGENA">CARTAGENA</option>
+                <option value="DUITAMA">DUITAMA</option>
+                <option value="IBAGUE">IBAGUE</option>
+                <option value="MEDELLIN LA 65">MEDELLIN LA 65</option>
+                <option value="MONTERIA">MONTERIA</option>
+                <option value="NEIVA">NEIVA</option>
+                <option value="PEREIRA">PEREIRA</option>
+                <option value="VILLAVICENCIO">VILLAVICENCIO</option>
+            </select>
+            <label for="sc-select">Estamos viendo el horario de:</label>
         </div>
-        <div class="scroll-container">
-            {% for day in sc_days %}
-            <div class="sc-days">
-            {% for event in day %}
-                <div class="{{event.0}}" style="grid-row: {{event.1}};">
-                {%if event.2 %}
-                    {{event.2}}
-                {%endif%}
-
-                {%if event.3 %}
-                    <p>{{event.3}}</p>
-                    <a class="btn btn-secondary btn-outline-light btn-sm" href="#" data-bs-toggle="modal" data-bs-target="#mod">Ver turno</a>
-
-                    <div class="modal fade" id="mod" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
-                        <div class="modal-dialog modal-dialog-centered modal-lg">
-                            <div class="modal-content">
-                                <div class="modal-header">
-                                    <h1 class="modal-title fs-5" id="exampleModalLabel">TURNO</h1>
-                                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                                </div>
-                                <div class="modal-body">
-                                    <h2 class="text-center mt-1em">Información</h2>
-                                    <div class="info">
-                                        <p class="text-end fw-bold">Fecha:</p> <p class=" border-bottom border-dark">{{event.4.0}}</p>
-                                        <p class="text-end fw-bold">CVS:</p> <p class=" border-bottom border-dark">{{event.4.1}}</p>
-                                        <p class="text-end fw-bold">Hora:</p> <p class=" border-bottom border-dark">{{event.4.2}}</p>
-                                        <p class="text-end fw-bold">Duración</p> <p class=" border-bottom border-dark">{{event.4.3}}</p>
-                                        <p class="text-end fw-bold text-nowrap">Tipo llanta:</p> <p class=" border-bottom border-dark">{{event.4.4}}</p>
-                                        <p class="text-end fw-bold">Cantidad:</p> <p class=" border-bottom border-dark">{{event.4.5}}</p>
-                                        <p class="text-end fw-bold">Rotación:</p> <p class=" border-bottom border-dark">{{event.4.6}}</p>
-                                        <p class="text-end fw-bold">Cantidad:</p> <p class=" border-bottom border-dark">{{event.4.7}}</p>
-                                    </div>
-                                    <hr>
-                                    <h2 class="text-center mt-1em">Venta</h2>
-                                    <div class="info">
-                                        <p class="text-end fw-bold">Factura:</p> <p class=" border-bottom border-dark">{{event.4.8}}</p>
-                                        <p class="text-end fw-bold text-nowrap">Id Cliente:</p> <p class=" border-bottom border-dark">{{event.4.9}}</p>
-                                        <p class="text-end fw-bold text-nowrap">Nombre Cliente:</p> <p class=" border-bottom border-dark">{{event.4.10}}</p>
-                                        <p class="text-end fw-bold">Teléfono:</p> <p class=" border-bottom border-dark">{{event.4.11}}</p>
-                                    </div>
-                                    <hr>
-                                    <h2 class="text-center mt-1em">Agenda</h2>
-                                    <div class="info">
-                                        <p class="text-end fw-bold text-nowrap">Agendado por:</p> <p class=" border-bottom border-dark">{{event.4.12}}</p>
-                                        <p class="text-end fw-bold">Fecha y Hora:</p> <p class=" border-bottom border-dark text-nowrap">{{event.4.13}}</p>
-                                        <p class="text-end fw-bold text-nowrap">Modificado por:</p> <p class=" border-bottom border-dark">{{event.4.14}}</p>
-                                        <p class="text-end fw-bold">Fecha y Hora:</p> <p class=" border-bottom border-dark text-nowrap">{{event.4.15}}</p>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                {%endif%}
-                </div>
-            {% endfor %}
-            </div>
-            {% endfor %}
-        </div>
-    </div>
-</div>
+        <button type="submit" class="ms-2 mt-2 btn btn-secondary btn-outline-light position-absolute end-50">Ver</button>
+    </form>
+    <hr>
+    <!-- section to see the schedule -->
+    {% if cvsName %} 
+        {% include 'base_schedule.html' %}
+    {% endif %}
 {% endblock %}

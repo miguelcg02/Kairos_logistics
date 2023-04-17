@@ -1,0 +1,119 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block styles %}
+<link rel="stylesheet" href="{% static 'schedules.css'%}">
+<link rel="stylesheet" href="{% static 'asign_turns.css'%}">
+{% endblock %}
+
+{% block title %}
+    Ver horarios
+{% endblock %}
+
+<!-- Selecting navbar -->
+{% block navbar %}
+    <!-- IF MANAGER -->
+    {% if role == 0 %}
+        {% include '0-manager/navbar-manager.html' %} 
+    {% endif %}
+    <!-- IF ADMIN -->
+    {% if role == 1 %}
+        {% include '1-admin\navbar-admin.html' %} 
+    {% endif %}
+    <!-- IF ADVISER -->
+    {% if role == 2 %}
+        {% include '2-adviser\navbar-adviser.html' %} 
+    {% endif %}
+    <!-- IF OPERATOR -->
+    {% if role == 3 %}
+        {% include '3-operator\navbar-operator.html' %} 
+    {% endif %}
+{% endblock %}
+
+{% block content %}
+    <div class="full-container">
+        <div class="sc-displayer">
+            <h2>Previsualización del horario</h2>
+            {% if cvsName %} 
+                {% include 'base_schedule.html' %}
+            {% endif %}
+        </div>
+        <div class="form-displayer">
+            <!-- section to change the cvs -->
+            <form style="margin: 2em;" action="" method="post">
+                {%csrf_token%}
+                <!-- info to keep -->
+                <input type="hidden" name="typeTire" value="{{typeTire}}">
+                <input type="hidden" name="quantity" value="{{quantity}}">
+                <input type="hidden" name="rotation" value="{{rotation}}">
+                <input type="hidden" name="quantityRotate" value="{{quantityRotate}}">
+                <h2>Cambio de cvs</h2>
+                <div class="form-floating">
+                    <select class="form-select" id="cvsName" name="cvsName" aria-label="change cvs">
+                        <option selected>{{cvsName}}</option><!--for this item we cannot put accents - or change BBDD-->
+                        <!-- posible optimización para nombres... requiere más procesamiento -->
+                        <option value="BARRANQUILLA">BARRANQUILLA</option>
+                        <option value="BOGOTA FONTIBON">BOGOTA FONTIBON</option>
+                        <option value="BOGOTA NORTE">BOGOTA NORTE</option>
+                        <option value="BOGOTA SUR">BOGOTA SUR</option>
+                        <option value="BUCARAMANGA">BUCARAMANGA</option>
+                        <option value="CALI">CALI</option>
+                        <option value="CARTAGENA">CARTAGENA</option>
+                        <option value="DUITAMA">DUITAMA</option>
+                        <option value="IBAGUE">IBAGUE</option>
+                        <option value="MEDELLIN LA 65">MEDELLIN LA 65</option>
+                        <option value="MONTERIA">MONTERIA</option>
+                        <option value="NEIVA">NEIVA</option>
+                        <option value="PEREIRA">PEREIRA</option>
+                        <option value="VILLAVICENCIO">VILLAVICENCIO</option>
+                    </select>
+                    <label for="cvsName">Visualizando horario de:</label>
+                </div>
+                <button type="submit" class="ms-2 mt-2 btn btn-secondary btn-outline-light ">Cambiar</button>
+            </form>
+            <hr>
+                <!-- section to see the calculated time for the service -->
+            <form style="margin: 2em;" action="" method="post">
+                {%csrf_token%}
+                <!-- info to keep -->
+                <input type="hidden" name="cvsName" value="{{cvsName}}">
+                <input type="hidden" name="typeTire" value="{{typeTire}}">
+                <input type="hidden" name="quantity" value="{{quantity}}">
+                <input type="hidden" name="rotation" value="{{rotation}}">
+                <input type="hidden" name="quantityRotate" value="{{quantityRotate}}">
+                <h2>Tiempo del servicio</h2>
+                <div class="form-floating">
+                    <input class="form-control" type="number" name="duration" id="duration" value="{{duration}}">
+                    <label for="duration">Aproximado (minutos)</label>
+                </div>
+                
+                    
+                <button type="submit" class="ms-2 mt-2 btn btn-secondary btn-outline-light ">Refrescar</button>
+            </form>
+            <div class="card" style="margin: 2em;">
+                <div class="card-body">
+                    <h5 class="card-title">Horarios recomendados</h5>
+                    <h6 class="card-subtitle mb-2 text-body-secondary">Recuerde que los horarios presentados se tienen en cuenta de la siguiente manera: <br> duración + 5 minutos de descanso</h6>
+                    <!-- content space for the recommendations -->
+                    <!-- falta el for -->
+                    <p class="card-text">Some quick</p>
+                </div>
+            </div>
+            <form action="{% url 'select_turns' %}" method="post">
+                {%csrf_token%}
+                <!-- info to keep -->
+                <input type="hidden" name="cvsName" value="{{cvsName}}">
+                <input type="hidden" name="typeTire" value="{{typeTire}}">
+                <input type="hidden" name="quantity" value="{{quantity}}">
+                <input type="hidden" name="rotation" value="{{rotation}}">
+                <input type="hidden" name="quantityRotate" value="{{quantityRotate}}">
+                <input type="hidden" name="duration" value="{{duration}}">
+                <button type="submit" class="mt-2 btn btn-secondary btn-outline-light position-absolute end-0 ">Continuar</button>
+            </form><br><br>
+            <form action="{% url 'asign_turns' %}" method="post">
+                {%csrf_token%}
+                <button type="submit" class="mt-2 btn btn-secondary btn-outline-light position-absolute end-0 ">Volver</button>
+            </form>
+        </div>
+    </div>
+{% endblock %}
