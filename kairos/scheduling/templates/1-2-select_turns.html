@@ -7,7 +7,7 @@
 {% endblock %}
 
 {% block title %}
-    Ver horarios
+    Asignar turnos
 {% endblock %}
 
 <!-- Selecting navbar -->
@@ -40,7 +40,7 @@
         </div>
         <div class="form-displayer">
             <!-- section to see the calculated time for the service -->
-            <form style="margin:  2em;" action="" method="post">
+            <form style="margin:  2em;" action="{% url 'confirm_turns' %}" method="post">
                 {%csrf_token%}
                 <!-- info to keep -->
                 <input type="hidden" name="cvsName" value="{{cvsName}}">
@@ -61,28 +61,28 @@
                     </div>
                 </div>
                 <div class="form-floating">
-                    <input class="form-control" type="date" name="date" id="date">
+                    <input class="form-control" type="date" name="date" id="date" required>
                     <label for="date">Fecha</label>
                 </div>
                 <div class="form-floating">
-                    <input class="form-control" type="time" name="hour" id="hour">
+                    <input class="form-control" type="time" name="hour" id="hour" required>
                     <label for="hour">Hora</label>
                 </div>
                 <h2>Información de la venta</h2>
                 <div class="form-floating">
-                    <input class="form-control" type="number" name="bill" id="bill">
+                    <input class="form-control" type="number" name="bill" id="bill" required>
                     <label for="bill">Número factura</label>
                 </div>
                 <div class="form-floating">
-                    <input class="form-control" type="number" name="idCustomer" id="idCustomer">
+                    <input class="form-control" type="number" name="idCustomer" id="idCustomer" required>
                     <label for="idCustomer">Cédula cliente</label>
                 </div>
                 <div class="form-floating">
-                    <input class="form-control" type="text" name="nameCustomer" id="nameCustomer">
+                    <input class="form-control" type="text" name="nameCustomer" id="nameCustomer" required>
                     <label for="nameCustomer">Nombre cliente</label>
                 </div>
                 <div class="form-floating">
-                    <input class="form-control" type="text" name="telCustomer" id="telCustomer">
+                    <input class="form-control" type="text" name="telCustomer" id="telCustomer" required>
                     <label for="telCustomer">Teléfono de contacto</label>
                 </div>
                 <!-- start confirm modal -->
