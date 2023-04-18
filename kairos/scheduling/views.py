@@ -2,6 +2,9 @@ from django.shortcuts import render
 from .models import *
 from .forms import CreateUserForm
 from django.contrib import messages
+from django.views.generic.base import TemplateView
+from openpyxl import Workbook #Library for generating an excel doc
+from openpyxl.styles import Alignment, Border, Font, PatternFill, Side
 
 from datetime import date,time,timedelta 
 
@@ -68,8 +71,233 @@ def create_user(request):
 def delete_user(request):
     return render(request,template_name="0-1-delete_user.html")
 
+def createReport(request):
+    query = Turn.objects.all()
+    workBook = Workbook()
+    workSheet = workBook.active
+    workSheet.title = 'Hoja1' #Change name of first sheet
+
+    
+    #Title of the doc
+    workSheet['A2'] = 'REPORTE MONTAJE Y BALANCEO'
+    workSheet['A2'].font = Font(name='Arial', size=12, bold=True, color='F79646')
+    workSheet['A2'].alignment = Alignment(horizontal="center", vertical="center")
+    workSheet.merge_cells('A2:E2')
+
+    #Create first row of the table with the data
+    workSheet['B4'] = 'Fecha del servicio'
+    workSheet['B4'].font = Font(name='Arial', size=10, bold=True)
+    workSheet['B4'].alignment = Alignment(horizontal="center", vertical="center")
+    workSheet['B4'].border = Border(left=Side(border_style="thin"), right=Side(border_style="thin"), top=Side(border_style="thin"), bottom=Side(border_style="thin"))
+    workSheet.column_dimensions['B'].width = 19
+
+    workSheet['C4'] = 'Hora del servicio'
+    workSheet['C4'].font = Font(name='Arial', size=10, bold=True)
+    workSheet['C4'].alignment = Alignment(horizontal="center", vertical="center")
+    workSheet['C4'].border = Border(left=Side(border_style="thin"), right=Side(border_style="thin"), top=Side(border_style="thin"), bottom=Side(border_style="thin"))
+    workSheet.column_dimensions['C'].width = 18
+
+    workSheet['D4'] = 'CVS'
+    workSheet['D4'].font = Font(name='Arial', size=10, bold=True)
+    workSheet['D4'].alignment = Alignment(horizontal="center", vertical="center")
+    workSheet['D4'].border = Border(left=Side(border_style="thin"), right=Side(border_style="thin"), top=Side(border_style="thin"), bottom=Side(border_style="thin"))
+    workSheet.column_dimensions['D'].width = 17
+
+    workSheet['E4'] = 'Número de factura'
+    workSheet['E4'].font = Font(name='Arial', size=10, bold=True)
+    workSheet['E4'].alignment = Alignment(horizontal="center", vertical="center")
+    workSheet['E4'].border = Border(left=Side(border_style="thin"), right=Side(border_style="thin"), top=Side(border_style="thin"), bottom=Side(border_style="thin"))
+    workSheet.column_dimensions['E'].width = 19.30
+
+    workSheet['F4'] = 'Cédula del cliente'
+    workSheet['F4'].font = Font(name='Arial', size=10, bold=True)
+    workSheet['F4'].alignment = Alignment(horizontal="center", vertical="center")
+    workSheet['F4'].border = Border(left=Side(border_style="thin"), right=Side(border_style="thin"), top=Side(border_style="thin"), bottom=Side(border_style="thin"))
+    workSheet.column_dimensions['F'].width = 19
+
+    workSheet['G4'] = 'Nombre del cliente'
+    workSheet['G4'].font = Font(name='Arial', size=10, bold=True)
+    workSheet['G4'].alignment = Alignment(horizontal="center", vertical="center")
+    workSheet['G4'].border = Border(left=Side(border_style="thin"), right=Side(border_style="thin"), top=Side(border_style="thin"), bottom=Side(border_style="thin"))
+    workSheet.column_dimensions['G'].width = 19.73
+
+    workSheet['H4'] = 'Teléfono del cliente'
+    workSheet['H4'].font = Font(name='Arial', size=10, bold=True)
+    workSheet['H4'].alignment = Alignment(horizontal="center", vertical="center")
+    workSheet['H4'].border = Border(left=Side(border_style="thin"), right=Side(border_style="thin"), top=Side(border_style="thin"), bottom=Side(border_style="thin"))
+    workSheet.column_dimensions['H'].width = 20.58
+
+    workSheet['I4'] = 'Servicio prestado'
+    workSheet['I4'].font = Font(name='Arial', size=10, bold=True)
+    workSheet['I4'].alignment = Alignment(horizontal="center", vertical="center")
+    workSheet['I4'].border = Border(left=Side(border_style="thin"), right=Side(border_style="thin"), top=Side(border_style="thin"), bottom=Side(border_style="thin"))
+    workSheet.column_dimensions['I'].width = 18.30
+
+    workSheet['J4'] = 'Comentarios del servicio'
+    workSheet['J4'].font = Font(name='Arial', size=10, bold=True)
+    workSheet['J4'].alignment = Alignment(horizontal="center", vertical="center")
+    workSheet['J4'].border = Border(left=Side(border_style="thin"), right=Side(border_style="thin"), top=Side(border_style="thin"), bottom=Side(border_style="thin"))
+    workSheet.column_dimensions['J'].width = 25
+
+    workSheet['K4'] = 'Tipo de llanta'
+    workSheet['K4'].font = Font(name='Arial', size=10, bold=True)
+    workSheet['K4'].alignment = Alignment(horizontal="center", vertical="center")
+    workSheet['K4'].border = Border(left=Side(border_style="thin"), right=Side(border_style="thin"), top=Side(border_style="thin"), bottom=Side(border_style="thin"))
+    workSheet.column_dimensions['K'].width = 15
+
+    workSheet['L4'] = 'Cantidad de llantas'
+    workSheet['L4'].font = Font(name='Arial', size=10, bold=True)
+    workSheet['L4'].alignment = Alignment(horizontal="center", vertical="center")
+    workSheet['L4'].border = Border(left=Side(border_style="thin"), right=Side(border_style="thin"), top=Side(border_style="thin"), bottom=Side(border_style="thin"))
+    workSheet.column_dimensions['L'].width = 20
+
+    workSheet['M4'] = '¿Hubo rotación?'
+    workSheet['M4'].font = Font(name='Arial', size=10, bold=True)
+    workSheet['M4'].alignment = Alignment(horizontal="center", vertical="center")
+    workSheet['M4'].border = Border(left=Side(border_style="thin"), right=Side(border_style="thin"), top=Side(border_style="thin"), bottom=Side(border_style="thin"))
+    workSheet.column_dimensions['M'].width = 17.45
+
+    workSheet['N4'] = 'Cantidad de llantas rotadas'
+    workSheet['N4'].font = Font(name='Arial', size=10, bold=True)
+    workSheet['N4'].alignment = Alignment(horizontal="center", vertical="center")
+    workSheet['N4'].border = Border(left=Side(border_style="thin"), right=Side(border_style="thin"), top=Side(border_style="thin"), bottom=Side(border_style="thin"))
+    workSheet.column_dimensions['N'].width = 27.45
+
+    workSheet['O4'] = 'Duración del servicio'
+    workSheet['O4'].font = Font(name='Arial', size=10, bold=True)
+    workSheet['O4'].alignment = Alignment(horizontal="center", vertical="center")
+    workSheet['O4'].border = Border(left=Side(border_style="thin"), right=Side(border_style="thin"), top=Side(border_style="thin"), bottom=Side(border_style="thin"))
+    workSheet.column_dimensions['O'].width = 21.60
+
+    workSheet['P4'] = 'Agendado por'
+    workSheet['P4'].font = Font(name='Arial', size=10, bold=True)
+    workSheet['P4'].alignment = Alignment(horizontal="center", vertical="center")
+    workSheet['P4'].border = Border(left=Side(border_style="thin"), right=Side(border_style="thin"), top=Side(border_style="thin"), bottom=Side(border_style="thin"))
+    workSheet.column_dimensions['P'].width = 16
+
+    workSheet['Q4'] = 'Fecha agendamiento'
+    workSheet['Q4'].font = Font(name='Arial', size=10, bold=True)
+    workSheet['Q4'].alignment = Alignment(horizontal="center", vertical="center")
+    workSheet['Q4'].border = Border(left=Side(border_style="thin"), right=Side(border_style="thin"), top=Side(border_style="thin"), bottom=Side(border_style="thin"))
+    workSheet.column_dimensions['Q'].width = 21.72
+
+    workSheet['R4'] = 'Modificado por'
+    workSheet['R4'].font = Font(name='Arial', size=10, bold=True)
+    workSheet['R4'].alignment = Alignment(horizontal="center", vertical="center")
+    workSheet['R4'].border = Border(left=Side(border_style="thin"), right=Side(border_style="thin"), top=Side(border_style="thin"), bottom=Side(border_style="thin"))
+    workSheet.column_dimensions['R'].width = 16
+
+    workSheet['S4'] = 'Fecha de modificación'
+    workSheet['S4'].font = Font(name='Arial', size=10, bold=True)
+    workSheet['S4'].alignment = Alignment(horizontal="center", vertical="center")
+    workSheet['S4'].border = Border(left=Side(border_style="thin"), right=Side(border_style="thin"), top=Side(border_style="thin"), bottom=Side(border_style="thin"))
+    workSheet.column_dimensions['S'].width = 23.30
+
+    rowController = 5 #to keep track of the row we will write on
+    for q in query:
+        #Fill in the data of the table
+        workSheet.cell(row=rowController, column=2).alignment = Alignment(horizontal="center", vertical="center")
+        workSheet.cell(row=rowController, column=2).font = Font(name='Arial', size=10)
+        workSheet.cell(row=rowController, column=2).value = q.date.isoformat()
+
+        workSheet.cell(row=rowController, column=3).alignment = Alignment(horizontal="center", vertical="center")
+        workSheet.cell(row=rowController, column=3).font = Font(name='Arial', size=10)
+        workSheet.cell(row=rowController, column=3).value = q.hour.isoformat('minutes')
+
+        workSheet.cell(row=rowController, column=4).alignment = Alignment(horizontal="center", vertical="center")
+        workSheet.cell(row=rowController, column=4).font = Font(name='Arial', size=10)
+        workSheet.cell(row=rowController, column=4).value = q.cvs.name
+
+        workSheet.cell(row=rowController, column=5).alignment = Alignment(horizontal="center", vertical="center")
+        workSheet.cell(row=rowController, column=5).font = Font(name='Arial', size=10)
+        workSheet.cell(row=rowController, column=5).value = q.bill
+
+        workSheet.cell(row=rowController, column=6).alignment = Alignment(horizontal="center", vertical="center")
+        workSheet.cell(row=rowController, column=6).font = Font(name='Arial', size=10)
+        workSheet.cell(row=rowController, column=6).value = q.idCustomer
+
+        workSheet.cell(row=rowController, column=7).alignment = Alignment(horizontal="center", vertical="center")
+        workSheet.cell(row=rowController, column=7).font = Font(name='Arial', size=10)
+        workSheet.cell(row=rowController, column=7).value = q.nameCustomer
+
+        workSheet.cell(row=rowController, column=8).alignment = Alignment(horizontal="center", vertical="center")
+        workSheet.cell(row=rowController, column=8).font = Font(name='Arial', size=10)
+        workSheet.cell(row=rowController, column=8).value = q.telCustomer
+
+        workSheet.cell(row=rowController, column=9).alignment = Alignment(horizontal="center", vertical="center")
+        workSheet.cell(row=rowController, column=9).font = Font(name='Arial', size=10)
+        if(q.done is True):
+            workSheet.cell(row=rowController, column=9).value = "Si"
+        else:
+            workSheet.cell(row=rowController, column=9).value = "No"
+        
+
+        workSheet.cell(row=rowController, column=10).alignment = Alignment(horizontal="center", vertical="center")
+        workSheet.cell(row=rowController, column=10).font = Font(name='Arial', size=10)
+        workSheet.cell(row=rowController, column=10).value = q.comment
+
+        workSheet.cell(row=rowController, column=11).alignment = Alignment(horizontal="center", vertical="center")
+        workSheet.cell(row=rowController, column=11).font = Font(name='Arial', size=10)
+        if(q.typeTire == 1):
+            workSheet.cell(row=rowController, column=11).value = "Carro"
+        elif(q.typeTire == 2):
+            workSheet.cell(row=rowController, column=11).value = "Camión"
+        elif(q.typeTire == 3):
+            workSheet.cell(row=rowController, column=11).value = "Camioneta"
+
+        workSheet.cell(row=rowController, column=12).alignment = Alignment(horizontal="center", vertical="center")
+        workSheet.cell(row=rowController, column=12).font = Font(name='Arial', size=10)
+        workSheet.cell(row=rowController, column=12).value = q.quantity
+
+        workSheet.cell(row=rowController, column=13).alignment = Alignment(horizontal="center", vertical="center")
+        workSheet.cell(row=rowController, column=13).font = Font(name='Arial', size=10)
+        if(q.rotation is True):
+            workSheet.cell(row=rowController, column=13).value = "Si"
+        else:
+            workSheet.cell(row=rowController, column=13).value = "No"
+
+        workSheet.cell(row=rowController, column=14).alignment = Alignment(horizontal="center", vertical="center")
+        workSheet.cell(row=rowController, column=14).font = Font(name='Arial', size=10)
+        workSheet.cell(row=rowController, column=14).value = q.quantityRotate
+
+        workSheet.cell(row=rowController, column=15).alignment = Alignment(horizontal="center", vertical="center")
+        workSheet.cell(row=rowController, column=15).font = Font(name='Arial', size=10)
+        workSheet.cell(row=rowController, column=15).value = str(q.duration) + " min."
+
+        workSheet.cell(row=rowController, column=16).alignment = Alignment(horizontal="center", vertical="center")
+        workSheet.cell(row=rowController, column=16).font = Font(name='Arial', size=10)
+        workSheet.cell(row=rowController, column=16).value = q.scheduledBy.user.username
+
+        workSheet.cell(row=rowController, column=17).alignment = Alignment(horizontal="center", vertical="center")
+        workSheet.cell(row=rowController, column=17).font = Font(name='Arial', size=10)
+        workSheet.cell(row=rowController, column=17).value = str(q.dateScheduled.date().isoformat()) + ", " + str(q.dateScheduled.time().isoformat('minutes'))
+
+        workSheet.cell(row=rowController, column=18).alignment = Alignment(horizontal="center", vertical="center")
+        workSheet.cell(row=rowController, column=18).font = Font(name='Arial', size=10)
+        if(q.modifiedBy is None):
+            workSheet.cell(row=rowController, column=18).value = ""
+        else:
+            workSheet.cell(row=rowController, column=18).value = q.modifiedBy.user.username
+
+        workSheet.cell(row=rowController, column=19).alignment = Alignment(horizontal="center", vertical="center")
+        workSheet.cell(row=rowController, column=19).font = Font(name='Arial', size=10)
+        if(q.dateModified is None):
+            workSheet.cell(row=rowController, column=19).value = ""
+        else:
+            workSheet.cell(row=rowController, column=19).value = str(q.dateModified.date().isoformat()) + ", " + str(q.dateModified.time().isoformat('minutes'))
+
+        rowController += 1
+
+    name = "Reporte.xlsx"
+    response = HttpResponse(content_type="application/ms-excel")
+    content = "attachment; filename = {0}".format(name)
+    response["Content-Disposition"] = content
+    workBook.save(response)
+    return response
+    
 def reports(request):
-    return render(request,template_name="0-reports.html")
+    cvsList = CVS.objects.all()
+    return render(request,template_name="0-reports.html", context={'role':getRole(request), 'cvsList':cvsList})
 
 #---------- auxiliar methods for see_schedules-------------------#
 def delta2time(delta):

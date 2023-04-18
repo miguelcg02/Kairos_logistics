@@ -1,0 +1,105 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block styles %}
+    <link rel="stylesheet" href="{% static '0-reports.css'%}">
+{% endblock %}
+
+<!-- Selecting navbar -->
+{% block navbar %}
+    <!-- IF MANAGER -->
+    {% if role == 0 %}
+        {% include '0-manager/navbar-manager.html' %} 
+    {% endif %}
+    <!-- IF ADMIN -->
+    {% if role == 1 %}
+        {% include '1-admin\navbar-admin.html' %} 
+    {% endif %}
+    <!-- IF ADVISER -->
+    {% if role == 2 %}
+        {% include '2-adviser\navbar-adviser.html' %} 
+    {% endif %}
+    <!-- IF OPERATOR -->
+    {% if role == 3 %}
+        {% include '3-operator\navbar-operator.html' %} 
+    {% endif %}
+{% endblock %}
+
+
+{% block content %}
+
+<!--jQuery-->
+<script type="text/javascript" src="https://code.jquery.com/jquery-1.11.3.min.js"></script>
+
+<!--Bootstrap datepicker plugin-->
+<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datepicker/1.4.1/js/bootstrap-datepicker.min.js"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datepicker/1.4.1/css/bootstrap-datepicker3.css"/>
+<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datepicker/1.6.4/locales/bootstrap-datepicker.es.min.js" charset="UTF-8"></script>
+
+<!--Bootstrap multiple select-->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-select/1.14.0-beta2/css/bootstrap-select.min.css"/>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-select/1.14.0-beta2/js/bootstrap-select.min.js"></script>
+
+<div class="bootstrap-iso">
+    <div class="container-fluid">
+        <div class="panel panel-primary panel-dark">
+            <div class="panel-heading">FILTROS</div>
+            <div class="panel-body">
+                <div class="row">
+                    <form method="post">
+                        <div class="form-group">
+                            <label class="control-label fw-bold">CVS</label>
+                            <select id="cvsOptions" name="cvsOptions" class="form-control selectpicker" multiple data-live-search="true" placeholder="Seleccione los CVS...">
+                                {% for cvs in cvsList %}
+                                    <option value="cvsChosen">{{ cvs.name }}</option>
+                                {% endfor %} 
+                            </select>
+                        </div>
+                    </form>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-6 col-sm-6 col-xs-12">
+                        <form method="post">
+                            <div class="form-group">
+                              <label class="control-label fw-bold" for="date">Fecha inicial</label>
+                              <input class="form-control" id="startDate" name="date" placeholder="DD/MM/AAAA" type="text"/>
+                            </div>
+                        </form>
+                    </div>
+                    <div class="col-md-6 col-sm-6 col-xs-12">
+                        <form method="post">
+                            <div class="form-group">
+                                <label class="control-label fw-bold" for="date">Fecha final</label>
+                                <input class="form-control" id="endDate" name="date" placeholder="DD/MM/AAAA" type="text"/>
+                            </div>
+                        </form>
+                    </div>
+                </div>    
+            </div>
+            <div class="panel-footer">
+                <a class="btn btn-lg px-3 btn-outline-dark" role="button" href="{% url 'excel' %}">Generar reporte</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    $(document).ready(function(){
+      var date_input=$('input[name="date"]'); //our date input has the name "date"
+      var container=$('.bootstrap-iso form').length>0 ? $('.bootstrap-iso form').parent() : "body";
+      var options={
+        format: "dd/mm/yyyy",
+        language: "es",
+        orientation: "bottom-left",
+        todayHighlight: true,
+        autoclose: true,
+      };
+      date_input.datepicker(options);
+    })
+</script>
+
+<br>
+
+{% endblock %}
+
