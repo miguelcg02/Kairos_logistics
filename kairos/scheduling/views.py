@@ -89,91 +89,109 @@ def createReport(request):
     workSheet['B4'].font = Font(name='Arial', size=10, bold=True)
     workSheet['B4'].alignment = Alignment(horizontal="center", vertical="center")
     workSheet['B4'].border = Border(left=Side(border_style="thin"), right=Side(border_style="thin"), top=Side(border_style="thin"), bottom=Side(border_style="thin"))
+    workSheet.column_dimensions['B'].width = 19
 
     workSheet['C4'] = 'Hora del servicio'
     workSheet['C4'].font = Font(name='Arial', size=10, bold=True)
     workSheet['C4'].alignment = Alignment(horizontal="center", vertical="center")
     workSheet['C4'].border = Border(left=Side(border_style="thin"), right=Side(border_style="thin"), top=Side(border_style="thin"), bottom=Side(border_style="thin"))
+    workSheet.column_dimensions['C'].width = 18
 
     workSheet['D4'] = 'CVS'
     workSheet['D4'].font = Font(name='Arial', size=10, bold=True)
     workSheet['D4'].alignment = Alignment(horizontal="center", vertical="center")
     workSheet['D4'].border = Border(left=Side(border_style="thin"), right=Side(border_style="thin"), top=Side(border_style="thin"), bottom=Side(border_style="thin"))
+    workSheet.column_dimensions['D'].width = 17
 
     workSheet['E4'] = 'Número de factura'
     workSheet['E4'].font = Font(name='Arial', size=10, bold=True)
     workSheet['E4'].alignment = Alignment(horizontal="center", vertical="center")
     workSheet['E4'].border = Border(left=Side(border_style="thin"), right=Side(border_style="thin"), top=Side(border_style="thin"), bottom=Side(border_style="thin"))
+    workSheet.column_dimensions['E'].width = 19.30
 
     workSheet['F4'] = 'Cédula del cliente'
     workSheet['F4'].font = Font(name='Arial', size=10, bold=True)
     workSheet['F4'].alignment = Alignment(horizontal="center", vertical="center")
     workSheet['F4'].border = Border(left=Side(border_style="thin"), right=Side(border_style="thin"), top=Side(border_style="thin"), bottom=Side(border_style="thin"))
+    workSheet.column_dimensions['F'].width = 19
 
     workSheet['G4'] = 'Nombre del cliente'
     workSheet['G4'].font = Font(name='Arial', size=10, bold=True)
     workSheet['G4'].alignment = Alignment(horizontal="center", vertical="center")
     workSheet['G4'].border = Border(left=Side(border_style="thin"), right=Side(border_style="thin"), top=Side(border_style="thin"), bottom=Side(border_style="thin"))
+    workSheet.column_dimensions['G'].width = 19.73
 
     workSheet['H4'] = 'Teléfono del cliente'
     workSheet['H4'].font = Font(name='Arial', size=10, bold=True)
     workSheet['H4'].alignment = Alignment(horizontal="center", vertical="center")
     workSheet['H4'].border = Border(left=Side(border_style="thin"), right=Side(border_style="thin"), top=Side(border_style="thin"), bottom=Side(border_style="thin"))
+    workSheet.column_dimensions['H'].width = 20.58
 
     workSheet['I4'] = 'Servicio prestado'
     workSheet['I4'].font = Font(name='Arial', size=10, bold=True)
     workSheet['I4'].alignment = Alignment(horizontal="center", vertical="center")
     workSheet['I4'].border = Border(left=Side(border_style="thin"), right=Side(border_style="thin"), top=Side(border_style="thin"), bottom=Side(border_style="thin"))
+    workSheet.column_dimensions['I'].width = 18.30
 
     workSheet['J4'] = 'Comentarios del servicio'
     workSheet['J4'].font = Font(name='Arial', size=10, bold=True)
     workSheet['J4'].alignment = Alignment(horizontal="center", vertical="center")
     workSheet['J4'].border = Border(left=Side(border_style="thin"), right=Side(border_style="thin"), top=Side(border_style="thin"), bottom=Side(border_style="thin"))
+    workSheet.column_dimensions['J'].width = 25
 
     workSheet['K4'] = 'Tipo de llanta'
     workSheet['K4'].font = Font(name='Arial', size=10, bold=True)
     workSheet['K4'].alignment = Alignment(horizontal="center", vertical="center")
     workSheet['K4'].border = Border(left=Side(border_style="thin"), right=Side(border_style="thin"), top=Side(border_style="thin"), bottom=Side(border_style="thin"))
+    workSheet.column_dimensions['K'].width = 15
 
     workSheet['L4'] = 'Cantidad de llantas'
     workSheet['L4'].font = Font(name='Arial', size=10, bold=True)
     workSheet['L4'].alignment = Alignment(horizontal="center", vertical="center")
     workSheet['L4'].border = Border(left=Side(border_style="thin"), right=Side(border_style="thin"), top=Side(border_style="thin"), bottom=Side(border_style="thin"))
+    workSheet.column_dimensions['L'].width = 20
 
     workSheet['M4'] = '¿Hubo rotación?'
     workSheet['M4'].font = Font(name='Arial', size=10, bold=True)
     workSheet['M4'].alignment = Alignment(horizontal="center", vertical="center")
     workSheet['M4'].border = Border(left=Side(border_style="thin"), right=Side(border_style="thin"), top=Side(border_style="thin"), bottom=Side(border_style="thin"))
+    workSheet.column_dimensions['M'].width = 17.45
 
     workSheet['N4'] = 'Cantidad de llantas rotadas'
     workSheet['N4'].font = Font(name='Arial', size=10, bold=True)
     workSheet['N4'].alignment = Alignment(horizontal="center", vertical="center")
     workSheet['N4'].border = Border(left=Side(border_style="thin"), right=Side(border_style="thin"), top=Side(border_style="thin"), bottom=Side(border_style="thin"))
+    workSheet.column_dimensions['N'].width = 27.45
 
     workSheet['O4'] = 'Duración del servicio'
     workSheet['O4'].font = Font(name='Arial', size=10, bold=True)
     workSheet['O4'].alignment = Alignment(horizontal="center", vertical="center")
     workSheet['O4'].border = Border(left=Side(border_style="thin"), right=Side(border_style="thin"), top=Side(border_style="thin"), bottom=Side(border_style="thin"))
+    workSheet.column_dimensions['O'].width = 21.60
 
     workSheet['P4'] = 'Agendado por'
     workSheet['P4'].font = Font(name='Arial', size=10, bold=True)
     workSheet['P4'].alignment = Alignment(horizontal="center", vertical="center")
     workSheet['P4'].border = Border(left=Side(border_style="thin"), right=Side(border_style="thin"), top=Side(border_style="thin"), bottom=Side(border_style="thin"))
+    workSheet.column_dimensions['P'].width = 16
 
     workSheet['Q4'] = 'Fecha agendamiento'
     workSheet['Q4'].font = Font(name='Arial', size=10, bold=True)
     workSheet['Q4'].alignment = Alignment(horizontal="center", vertical="center")
     workSheet['Q4'].border = Border(left=Side(border_style="thin"), right=Side(border_style="thin"), top=Side(border_style="thin"), bottom=Side(border_style="thin"))
-    
+    workSheet.column_dimensions['Q'].width = 21.72
+
     workSheet['R4'] = 'Modificado por'
     workSheet['R4'].font = Font(name='Arial', size=10, bold=True)
     workSheet['R4'].alignment = Alignment(horizontal="center", vertical="center")
     workSheet['R4'].border = Border(left=Side(border_style="thin"), right=Side(border_style="thin"), top=Side(border_style="thin"), bottom=Side(border_style="thin"))
+    workSheet.column_dimensions['R'].width = 16
 
     workSheet['S4'] = 'Fecha de modificación'
     workSheet['S4'].font = Font(name='Arial', size=10, bold=True)
     workSheet['S4'].alignment = Alignment(horizontal="center", vertical="center")
     workSheet['S4'].border = Border(left=Side(border_style="thin"), right=Side(border_style="thin"), top=Side(border_style="thin"), bottom=Side(border_style="thin"))
+    workSheet.column_dimensions['S'].width = 23.30
 
     rowController = 5 #to keep track of the row we will write on
     for q in query:
@@ -225,7 +243,7 @@ def createReport(request):
         elif(q.typeTire == 2):
             workSheet.cell(row=rowController, column=11).value = "Camión"
         elif(q.typeTire == 3):
-            workSheet.cell(row=rowController, column=11).value = "Moto"
+            workSheet.cell(row=rowController, column=11).value = "Camioneta"
 
         workSheet.cell(row=rowController, column=12).alignment = Alignment(horizontal="center", vertical="center")
         workSheet.cell(row=rowController, column=12).font = Font(name='Arial', size=10)
@@ -278,9 +296,8 @@ def createReport(request):
     return response
     
 def reports(request):
-    #createReport(request)
-    a = CVS.objects.all()
-    return render(request,template_name="0-reports.html", context={'role':getRole(request), 'cvsList':a})
+    cvsList = CVS.objects.all()
+    return render(request,template_name="0-reports.html", context={'role':getRole(request), 'cvsList':cvsList})
 
 #---------- auxiliar methods for see_schedules-------------------#
 def delta2time(delta):
