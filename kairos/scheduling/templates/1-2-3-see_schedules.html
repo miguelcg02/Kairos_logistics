@@ -35,25 +35,13 @@
         {%csrf_token%}
         <h2>Selección de horario</h2>
         <div class="form-floating">
-            <select class="form-select" id="sc-select" name="sc-select" aria-label="select cvs">
-                <option selected></option>
-                <!-- posible optimización para nombres... requiere más procesamiento -->
-                <option value="BARRANQUILLA">BARRANQUILLA</option>
-                <option value="BOGOTA FONTIBON">BOGOTA FONTIBON</option>
-                <option value="BOGOTA NORTE">BOGOTA NORTE</option>
-                <option value="BOGOTA SUR">BOGOTA SUR</option>
-                <option value="BUCARAMANGA">BUCARAMANGA</option>
-                <option value="CALI">CALI</option>
-                <option value="CARTAGENA">CARTAGENA</option>
-                <option value="DUITAMA">DUITAMA</option>
-                <option value="IBAGUE">IBAGUE</option>
-                <option value="MEDELLIN LA 65">MEDELLIN LA 65</option>
-                <option value="MONTERIA">MONTERIA</option>
-                <option value="NEIVA">NEIVA</option>
-                <option value="PEREIRA">PEREIRA</option>
-                <option value="VILLAVICENCIO">VILLAVICENCIO</option>
+            <select class="form-select" id="cvsName" name="cvsName" aria-label="select cvs">
+                <option selected>{{cvsName}}</option><!--for this item we cannot put accents - or change BBDD-->
+                {% for cvs in listCVSs %}
+                <option value="{{cvs}}">{{cvs}}</option>
+                {% endfor %}
             </select>
-            <label for="sc-select">Estamos viendo el horario de:</label>
+            <label for="cvsName">Estamos viendo el horario de:</label>
         </div>
         <button type="submit" class="ms-2 mt-2 btn btn-secondary btn-outline-light position-absolute end-50">Ver</button>
     </form>
