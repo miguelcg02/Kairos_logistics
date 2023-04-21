@@ -7,7 +7,7 @@
 {% endblock %}
 
 {% block title %}
-    Ver horarios
+    Asignar turnos
 {% endblock %}
 
 <!-- Selecting navbar -->
@@ -47,25 +47,14 @@
                 <input type="hidden" name="quantity" value="{{quantity}}">
                 <input type="hidden" name="rotation" value="{{rotation}}">
                 <input type="hidden" name="quantityRotate" value="{{quantityRotate}}">
+                <input type="hidden" name="duration" value="{{duration}}">
                 <h2>Cambio de cvs</h2>
                 <div class="form-floating">
                     <select class="form-select" id="cvsName" name="cvsName" aria-label="change cvs">
                         <option selected>{{cvsName}}</option><!--for this item we cannot put accents - or change BBDD-->
-                        <!-- posible optimización para nombres... requiere más procesamiento -->
-                        <option value="BARRANQUILLA">BARRANQUILLA</option>
-                        <option value="BOGOTA FONTIBON">BOGOTA FONTIBON</option>
-                        <option value="BOGOTA NORTE">BOGOTA NORTE</option>
-                        <option value="BOGOTA SUR">BOGOTA SUR</option>
-                        <option value="BUCARAMANGA">BUCARAMANGA</option>
-                        <option value="CALI">CALI</option>
-                        <option value="CARTAGENA">CARTAGENA</option>
-                        <option value="DUITAMA">DUITAMA</option>
-                        <option value="IBAGUE">IBAGUE</option>
-                        <option value="MEDELLIN LA 65">MEDELLIN LA 65</option>
-                        <option value="MONTERIA">MONTERIA</option>
-                        <option value="NEIVA">NEIVA</option>
-                        <option value="PEREIRA">PEREIRA</option>
-                        <option value="VILLAVICENCIO">VILLAVICENCIO</option>
+                        {% for cvs in listCVSs %}
+                        <option value="{{cvs}}">{{cvs}}</option>
+                        {% endfor %}
                     </select>
                     <label for="cvsName">Visualizando horario de:</label>
                 </div>
@@ -83,7 +72,7 @@
                 <input type="hidden" name="quantityRotate" value="{{quantityRotate}}">
                 <h2>Tiempo del servicio</h2>
                 <div class="form-floating">
-                    <input class="form-control" type="number" name="duration" id="duration" value="{{duration}}">
+                    <input class="form-control" type="number" name="duration" id="duration" value="{{duration}}" required>
                     <label for="duration">Aproximado (minutos)</label>
                 </div>
                 
@@ -112,6 +101,8 @@
             </form><br><br>
             <form action="{% url 'asign_turns' %}" method="post">
                 {%csrf_token%}
+                <!-- info to keep -->
+                <input type="hidden" name="cvsName" value="{{cvsName}}">
                 <button type="submit" class="mt-2 btn btn-secondary btn-outline-light position-absolute end-0 ">Volver</button>
             </form>
         </div>

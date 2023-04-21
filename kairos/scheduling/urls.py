@@ -20,6 +20,7 @@ urlpatterns = [
     path('asign_turns/',views.asign_turns,name='asign_turns'),
     path('time_turns/',views.time_turns,name='time_turns'),
     path('select_turns/',views.select_turns,name='select_turns'),
+    path('confirm_turns/',views.confirm_turns,name='confirm_turns'),
     path('modify_schedules/',views.modify_schedules,name='modify_schedules'),
     path('validate_service_provided/',views.validate_service_provided,name='validate_service_provided'),
     path('excel/', views.createReport, name='excel'),
