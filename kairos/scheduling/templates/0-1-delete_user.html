@@ -1,0 +1,65 @@
+{% extends 'base.html' %}
+
+{% block title %}
+    Crear usuario
+{% endblock %}
+
+<!-- AQUI TOCA ESTABLECER IS SE VA A USAR EL NAVBAR DE MANAGER O DE ADMIN, ASÍ QUE OJO -->
+
+{% block navbar %}
+    <!-- IF ES MANEGER -->
+    {% include '0-manager/navbar-manager.html' %} 
+
+    <!-- ELSE IF ES ADMIN -->
+    <!-- include etc etc navbar-damin -->
+{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row justify-content-center align-items-center py-5">
+        <div class="col-12 col-md-9">
+            <div class="text-center">
+                <h2 class="">ELIMINAR USUARIOS DENTRO DE LA APP</h2>
+            </div>
+            <form class="form py-5" method = "POST" actions="">
+
+                {% csrf_token %}
+                
+                <div class="form__field form__field--4">
+                    <label class="form__rol-label form-label" for="input-rol">Rol del usuario a eliminar</label>
+                    <br>
+                    <select name="rol" required>
+                        <option value="0">Gerente</option>
+                        <option value="1">Administrador de CVS</option>
+                        <option value="2">Asesor comercial</option>
+                        <option value="3">Operario</option>
+                    </select>
+                </div>
+
+                <div class="form__field form__field--3">
+                    <label class="form__username-label form-label" for="input-username">Nombre de usuario</label>
+                    <br>
+                    <select name="usuario" required>
+                        <option value="0"></option>
+                        <option value="1"></option>
+                        <option value="2"></option>
+                        <option value="3"></option>
+                    </select>
+                </div>
+    
+                <div class="form__field form__field--5">
+                    <label class="form__email-label form-label" for="input-email">Ingrese su contraseña de administrador</label>
+                    <input type="password" id="typePasswordX" class="form-control form-control-lg" name="password" />
+                    <br>
+                </div>
+                
+                <br>
+                <div class="form__field form__field--9 text-center my-0">
+                    <button class="form__button btn btn-primary btn-lg btn-outline-light" type="submit">Enviar</button>
+                </div>
+
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
