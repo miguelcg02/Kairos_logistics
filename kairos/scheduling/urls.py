@@ -23,5 +23,6 @@ urlpatterns = [
     path('confirm_turns/',views.confirm_turns,name='confirm_turns'),
     path('modify_schedules/',views.modify_schedules,name='modify_schedules'),
     path('validate_service_provided/',views.validate_service_provided,name='validate_service_provided'),
+    path('excel/', views.createReport, name='excel'),
 
 ]   

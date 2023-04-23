@@ -31,7 +31,7 @@ class Turn(models.Model):
     typeTire = models.IntegerField(blank=False) # numeric convention for the type of tire
     quantity = models.IntegerField(blank=False) # number of tires to change
     rotation = models.BooleanField(blank=False) # aditional service (rotate maximum the same number of tires that you buy)
-    quantityRotate = models.IntegerField(blank=True) # number of tires to rotate
+    quantityRotate = models.IntegerField(blank=True, null=True) # number of tires to rotate
     duration = models.IntegerField(blank=False) # time in minutes of the service
     date = models.DateField(auto_now=False, auto_now_add=False,blank=False) # date when the service is going to be done
     hour = models.TimeField(auto_now=False, auto_now_add=False,blank=False) # hour when the service is going to be done
@@ -41,10 +41,10 @@ class Turn(models.Model):
     telCustomer = models.TextField(max_length=15,blank=False) # contact number of the customer
     scheduledBy = models.ForeignKey(Profile,on_delete=models.CASCADE,blank=False,related_name="person_who_schedules") # person who scheduled
     dateScheduled = models.DateTimeField(auto_now=False, auto_now_add=True,blank=False) #date when the service was scheduled 
-    modifiedBy = models.ForeignKey(Profile,on_delete=models.CASCADE,blank=True,related_name="person_who_modifies")  # person who modified the service 
-    dateModified = models.DateTimeField(auto_now=False, auto_now_add=False,blank=True) #date when the service was modified 
-    done = models.BooleanField(blank=True) # verification if the service get done
-    comment = models.TextField(max_length=300,blank=True) # comment about the service or the reason to don't provide the service
+    modifiedBy = models.ForeignKey(Profile,on_delete=models.CASCADE,blank=True,related_name="person_who_modifies", null=True)  # person who modified the service 
+    dateModified = models.DateTimeField(auto_now=False, auto_now_add=False,blank=True, null=True) #date when the service was modified 
+    done = models.BooleanField(blank=True, null=True) # verification if the service get done
+    comment = models.TextField(max_length=300,blank=True, null=True) # comment about the service or the reason to don't provide the service
 
     class Meta:
         verbose_name = "turn"
