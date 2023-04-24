@@ -24,33 +24,15 @@
             <form class="form py-5" method = "POST" actions="">
 
                 {% csrf_token %}
-                
-                <div class="form__field form__field--4">
-                    <label class="form__rol-label form-label" for="input-rol">Rol del usuario a eliminar</label>
-                    <br>
-                    <select name="rol" required>
-                        <option value="0">Gerente</option>
-                        <option value="1">Administrador de CVS</option>
-                        <option value="2">Asesor comercial</option>
-                        <option value="3">Operario</option>
-                    </select>
-                </div>
 
                 <div class="form__field form__field--3">
                     <label class="form__username-label form-label" for="input-username">Nombre de usuario</label>
                     <br>
-                    <select name="usuario" required>
-                        <option value="0"></option>
-                        <option value="1"></option>
-                        <option value="2"></option>
-                        <option value="3"></option>
+                    <select name="user_deleted" required>
+                        {% for user in users %}
+                        <option value="{{user.id}}">{{ user.username }}</option>
+                        {% endfor %}
                     </select>
-                </div>
-    
-                <div class="form__field form__field--5">
-                    <label class="form__email-label form-label" for="input-email">Ingrese su contraseña de administrador</label>
-                    <input type="password" id="typePasswordX" class="form-control form-control-lg" name="password" />
-                    <br>
                 </div>
                 
                 <br>

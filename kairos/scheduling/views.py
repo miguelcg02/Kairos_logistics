@@ -1,4 +1,5 @@
 from django.shortcuts import render, redirect
+from django.contrib.auth import authenticate, login, logout
 from .models import *
 from .forms import CreateUserForm
 from django.contrib import messages
@@ -17,24 +18,38 @@ def getRole(request):
     return actualProfile.rol
 #-----------------------------------------#
 def login_page(request):
+    if request.method == 'POST':
+        username = request.POST.get('username')
+        password = request.POST.get('password')
+        user = authenticate(username=username, password=password)
+
+        if user is not None:
+            profile = Profile.objects.get(user=user.id)
+            role = profile.rol
+            login(request, user)
+            messages.success(request, f'¡Bienvenido {user.username}, nos encanta tenerte de vuelta!')
+
+            if role == 0:
+                context = {'role':role}
+                return render(request,template_name="0-manager/home-manager.html", context=context)
+            elif role == 1:
+                context = {'role':role}
+                return render(request,template_name="1-admin/home-admin.html", context=context)
+            elif role == 2:
+                context = {'role':role}
+                return render(request,template_name="2-adviser/home-adviser.html", context=context)
+            elif role == 3:
+                context = {'role':role}
+                return render(request,template_name="3-operator/home-operator.html", context=context)
+            else:
+                messages.error(request, 'Ocurrio un error inesperado!')
+                return redirect('login')
+        else:
+            messages.error(request, '¡El usuario y la contraseña no coinciden, por favor vuelva a intentarlo!')
+            return redirect('login')
+    
     if request.method == 'GET':
         return render(request, template_name='login.html')
-    
-    # if request.method == 'POST':
-    #     username = request.POST.get('username')
-    #     password = request.POST.get('password')
-    #     user = authenticate(username=username, password=password)
-
-    # if user is not None:
-    #     login(request, user)
-    #     messages.success(request, f'¡Bienvenido {user.username}, nos encanta tenerte de vuelta!')
-    #     return redirect('home')
-    # else:
-    #     messages.error(request, '¡El usuario y la contraseña no coinciden, por favor vuelva a intentarlo!')
-    #     return redirect('login')
-
-
-    return render(request,template_name="login.html")
 
 def home_manager(request):
     return render(request,template_name="0-manager/home-manager.html")
@@ -53,23 +68,36 @@ def block_schedule(request):
 
 def create_user(request):
     form = CreateUserForm()
+
     if request.method == "POST":
+        form = CreateUserForm(request.POST)
         if form.is_valid():
-            rol = request.POST.get('rol') #Revisar que el name sea rol
+            role = request.POST.get('rol') #Revisar que el name sea rol
             form.save()
-            Actual_user = User.objects.get(username= request.POST["username"])
-            newProfile = Profile(user = Actual_user, rol=rol)
+            new_user = User.objects.get(username= request.POST["username"])
+            newProfile = Profile(user=new_user, rol=role)
             newProfile.save()
             messages.success(request, '¡El usuario fue creado exitosamente!')
-            return render(request,template_name="0-1-create_user.html")
+            return render(request,template_name="0-1-create_user.html", context={'form': form})
         else:
             messages.error(request, 'Error al crear el usuario, por favor verique la información')
             return render(request,template_name="0-1-create_user.html", context={'form': form})
 
     return render(request,template_name="0-1-create_user.html", context={'form': form})
 
-def delete_user(request):
-    return render(request,template_name="0-1-delete_user.html")
+def delete_user(request):    
+
+    if request.method == 'POST':
+        user_deleted = request.POST.get('user_deleted')
+        user_to_delete = User.objects.get(id=user_deleted)
+        profile_to_delete = Profile.objects.get(user=user_to_delete)
+        profile_to_delete.delete()
+        user_to_delete.delete()
+    
+    users = User.objects.all().order_by('username').values()
+    context={'users':users}
+    return render(request,template_name="0-1-delete_user.html",context=context)
+        
 
 def createReport(request):
     query = Turn.objects.all()

@@ -1,4 +1,5 @@
 from django.urls import path
+from django.contrib.auth.views import logout_then_login
 
 from . import views
 
@@ -24,5 +25,6 @@ urlpatterns = [
     path('modify_schedules/',views.modify_schedules,name='modify_schedules'),
     path('validate_service_provided/',views.validate_service_provided,name='validate_service_provided'),
     path('excel/', views.createReport, name='excel'),
+    path('logout/', logout_then_login, name='logout'),
 
-]   
+]
