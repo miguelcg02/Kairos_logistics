@@ -31,16 +31,16 @@ def login_page(request):
 
             if role == 0:
                 context = {'role':role}
-                return render(request,template_name="0-manager/home-manager.html", context=context)
+                return render(request,template_name="0-reports.html", context=context)
             elif role == 1:
                 context = {'role':role}
-                return render(request,template_name="1-admin/home-admin.html", context=context)
+                return render(request,template_name="1-2-3-see_schedules.html", context=context)
             elif role == 2:
                 context = {'role':role}
-                return render(request,template_name="2-adviser/home-adviser.html", context=context)
+                return render(request,template_name="1-2-3-see_schedules.html", context=context)
             elif role == 3:
                 context = {'role':role}
-                return render(request,template_name="3-operator/home-operator.html", context=context)
+                return render(request,template_name="1-2-3-see_schedules.html", context=context)
             else:
                 messages.error(request, 'Ocurrio un error inesperado!')
                 return redirect('login')
@@ -50,18 +50,6 @@ def login_page(request):
     
     if request.method == 'GET':
         return render(request, template_name='login.html')
-
-def home_manager(request):
-    return render(request,template_name="0-manager/home-manager.html")
-
-def home_admin(request):
-    return render(request,template_name="1-admin/home-admin.html")
-
-def home_adviser(request):
-    return render(request,template_name="2-adviser/home-adviser.html")
-
-def home_operator(request):
-    return render(request,template_name="3-operator/home-operator.html")
 
 def block_schedule(request):
     return render(request,template_name="0-1-block_schedule.html")
