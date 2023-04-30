@@ -94,7 +94,9 @@ def delete_user(request):
         profile_to_delete.delete()
         user_to_delete.delete()
     
-    users = User.objects.all().order_by('username').values()
+    current_user = request.user
+    users = User.objects.all().order_by('username').values().exclude(id=current_user.id)
+    print(users)
     context={'users':users}
     return render(request,template_name="0-1-delete_user.html",context=context)
         
