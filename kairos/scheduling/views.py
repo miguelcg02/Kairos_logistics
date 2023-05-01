@@ -735,7 +735,7 @@ def valDateHour(request,dateF,hour,duration):
 
                 break
 
-        return problems
+    return problems
 
 def valBill(request,bill):
     problems=False
@@ -812,7 +812,128 @@ def confirm_turns(request):
             return redirect('see_schedules')
 
 def modify_schedules(request):
-    return render(request,template_name="1-modify_schedules.html")
+    cvsName=request.user.first_name
+    #events' array (freetime and services) for the context
+    sc_days=toSee_schedules(cvsName)
+
+    if(request.method=='POST'):
+        dateToSearch=date.fromisoformat(request.POST.get('date'))
+        turns=Turn.objects.filter(date=dateToSearch)
+        listTurns=[]
+        for turn in turns:
+            turnL=[]
+            turnL.append(turn.id)
+            beg=timedelta(hours=turn.hour.hour,minutes=turn.hour.minute)
+            end=beg+timedelta(minutes=turn.duration)
+            turnL.append(delta2time(beg)+" - "+delta2time(end))
+            listTurns.append(turnL)
+        
+        if(listTurns):
+            return render(request,template_name="1-modify_schedules.html",context={'cvsName':cvsName,'sc_days':sc_days,'listTurns':listTurns,'date':dateToSearch.isoformat(),'role':getRole(request)})
+        else:
+            messages.warning(request,"El día accedido no tiene turnos asignados")
+
+    return render(request,template_name="1-modify_schedules.html",context={'cvsName':cvsName,'sc_days':sc_days,'role':getRole(request)})
+
+def modify_turn(request):
+
+    if(request.POST.get('turn')):
+        print("por turno")
+        turn=Turn.objects.get(id=int(request.POST.get('turn')))
+    else:
+        print("por factura")
+        turn=Turn.objects.filter(bill=int(request.POST.get('bill')))
+
+        if(not len(turn)):
+            cvsName=request.user.first_name
+            #events' array (freetime and services) for the context
+            sc_days=toSee_schedules(cvsName)
+            messages.warning(request,"No se ha encontrado un servicio con factura: "+request.POST.get('bill'))
+            return render(request,template_name="1-modify_schedules.html",context={'cvsName':cvsName,'sc_days':sc_days,'role':getRole(request)})
+        
+        turn=turn.first()
+    
+    idTurn= turn.id
+    cvsName= turn.cvs.name
+    typeTire= turn.typeTire
+    if(typeTire==1):
+        typeTireName="Automóvil"
+    elif(typeTire==2):
+        typeTireName="Camioneta"
+    elif(typeTire==3):
+        typeTireName="Camión"
+    quantity= turn.quantity
+    if(turn.rotation):
+        rotation="yes"
+    else:
+        rotation=""
+    quantityRotate= turn.quantityRotate
+    duration= turn.duration
+    date= turn.date.isoformat()
+    hour= turn.hour.isoformat('minutes')
+    bill= turn.bill
+    idCustomer= turn.idCustomer
+    nameCustomer= turn.nameCustomer
+    telCustomer= turn.telCustomer
+
+    return render(request,template_name="1-modify_turn.html",
+        context={
+        'idTurn':idTurn,
+        'cvsName':cvsName,
+        'typeTire':typeTire,
+        'typeTireName':typeTireName,
+        'quantity':quantity,
+        'rotation':rotation,
+        'quantityRotate':quantityRotate,
+        'duration':duration,
+        'date':date,
+        'hour':hour,
+        'bill':bill,
+        'idCustomer':idCustomer,
+        'nameCustomer':nameCustomer,
+        'telCustomer':telCustomer,
+        'role':getRole(request)})
+
+def confirm_modify(request):
+    flag1=valBill(request,float(request.POST.get('bill')))
+    flag3=valDuration(request,float(request.POST.get('duration')))
+    flag2=valDateHour(request,date.fromisoformat(request.POST.get('date')),time.fromisoformat(request.POST.get('hour')),int(request.POST.get('duration')))
+    flag4=valId(request,float(request.POST.get('idCustomer')))
+    flag5=valQuantity(request,float(request.POST.get('quantity')))
+    flag6=valQuantityRotate(request,float(request.POST.get('quantityRotate')),float(request.POST.get('quantity')))
+    print(flag1)
+    print(flag3)
+    print(flag2)
+    print(flag4)
+    print(flag5)
+    print(flag6)
+    if(flag1 or flag2 or flag3 or flag4 or flag5 or flag6):
+        cvsName=request.user.first_name
+        #events' array (freetime and services) for the context
+        sc_days=toSee_schedules(cvsName)
+        messages.warning(request,"No se actualizó el servicio")
+        return render(request,template_name="1-modify_schedules.html",context={'cvsName':cvsName,'sc_days':sc_days,'role':getRole(request)})
+    else:
+        modTurn=Turn.objects.get(id=int(request.POST.get('idTurn')))
+        modTurn.typeTire=int(request.POST.get('typeTire'))
+        modTurn.quantity=int(request.POST.get('quantity'))
+        if(request.POST.get('rotation')):
+            modTurn.rotation=True
+        else:
+            modTurn.rotation=False
+        modTurn.quantityRotate=int(request.POST.get('quantityRotate'))
+        modTurn.duration=int(request.POST.get('duration'))
+        modTurn.date=date.fromisoformat(request.POST.get('date'))
+        modTurn.hour=time.fromisoformat(request.POST.get('hour'))
+        modTurn.bill=int(request.POST.get('bill'))
+        modTurn.idCustomer=int(request.POST.get('idCustomer'))
+        modTurn.nameCustomer=request.POST.get('nameCustomer')
+        modTurn.telCustomer=request.POST.get('telCustomer')
+
+        modTurn.save()
+        messages.success(request,"Se actualizó correctamente el turno")
+        return redirect('see_schedules')
+
 
 def validate_service_provided(request):
     return render(request,template_name="1-validate_service_provided.html")

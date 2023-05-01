@@ -1,0 +1,131 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block styles %}
+<link rel="stylesheet" href="{% static 'sel_mod_turns.css'%}">
+{% endblock %}
+
+{% block title %}
+    Modificar turnos
+{% endblock %}
+
+<!-- Selecting navbar -->
+{% block navbar %}
+    <!-- IF MANAGER -->
+    {% if role == 0 %}
+        {% include '0-manager/navbar-manager.html' %} 
+    {% endif %}
+    <!-- IF ADMIN -->
+    {% if role == 1 %}
+        {% include '1-admin\navbar-admin.html' %} 
+    {% endif %}
+    <!-- IF ADVISER -->
+    {% if role == 2 %}
+        {% include '2-adviser\navbar-adviser.html' %} 
+    {% endif %}
+    <!-- IF OPERATOR -->
+    {% if role == 3 %}
+        {% include '3-operator\navbar-operator.html' %} 
+    {% endif %}
+{% endblock %}
+
+{% block content %}
+
+    <div class="form-displayer-modify">
+        <!-- section to see the calculated time for the service -->
+        <form style="margin:  2em;" action="{% url 'confirm_modify' %}" method="post">
+            {%csrf_token%}
+            <!-- info to keep -->
+            <input type="hidden" name="idTurn" value="{{idTurn}}">
+
+            <h2>Datos del servicio</h2>
+            <div class="form-floating">
+                <input class="form-control" type="text" name="cvsName" id="cvsName" value="{{cvsName}}" required readonly>
+                <label for="cvsName">Nombre CVS</label>
+            </div>
+            <div class="form-floating">
+                <select class="form-select" id="typeTire" name="typeTire" aria-label="select type tire" required>
+                    <option value="{{typeTire}}" selected>{{typeTireName}}</option>
+                    <!-- posible optimización para nombres... requiere más procesamiento -->
+                    <option value="1">Automóvil</option>
+                    <option value="2">Camioneta</option>
+                    <option value="3">Camión</option>
+                </select>
+                <label for="typeTire">Tipo de llanta</label>
+            </div>
+            <div class="form-floating">
+                <input class="form-control" type="number" name="quantity" id="quantity" value="{{quantity}}" required>
+                <label for="quantity">Cantidad llantas del servicio</label>
+            </div>
+            {% if rotation %}
+            <div class="">
+                <input class="form-check-input" type="checkbox" name="rotation" id="rotation" value="{{rotation}}" checked>
+                <label class="form-check-label" for="rotation">Rotación</label>
+            </div>
+            {% else %}
+            <div class="">
+                <input class="form-check-input" type="checkbox" name="rotation" id="rotation" value="{{rotation}}">
+                <label class="form-check-label" for="rotation">Rotación</label>
+            </div>
+            {% endif %}
+            <div class="form-floating">
+                <input class="form-control" type="number" name="quantityRotate" id="quantityRotate" value="{{quantityRotate}}" required>
+                <label for="quantityRotate">Cantidad llantas del servicio</label>
+            </div>
+            <div class="form-floating">
+                <input class="form-control" type="number" name="duration" id="duration" value="{{duration}}" required>
+                <label for="duration">Duración del servicio</label>
+            </div>
+            <h2>Fecha y hora</h2>
+            <div class="form-floating">
+                <input class="form-control" type="date" name="date" id="date" value="{{date}}" required>
+                <label for="date">Fecha</label>
+            </div>
+            <div class="form-floating">
+                <input class="form-control" type="time" name="hour" id="hour" value="{{hour}}" required>
+                <label for="hour">Hora</label>
+            </div>
+            <h2>Información de la venta</h2>
+            <div class="form-floating">
+                <input class="form-control" type="number" name="bill" id="bill" value="{{bill}}" required>
+                <label for="bill">Número factura</label>
+            </div>
+            <div class="form-floating">
+                <input class="form-control" type="number" name="idCustomer" id="idCustomer" value="{{idCustomer}}" required>
+                <label for="idCustomer">Cédula cliente</label>
+            </div>
+            <div class="form-floating">
+                <input class="form-control" type="text" name="nameCustomer" id="nameCustomer" value="{{nameCustomer}}" required>
+                <label for="nameCustomer">Nombre cliente</label>
+            </div>
+            <div class="form-floating">
+                <input class="form-control" type="text" name="telCustomer" id="telCustomer" value="{{telCustomer}}" required>
+                <label for="telCustomer">Teléfono de contacto</label>
+            </div>
+            <!-- start confirm modal -->
+                <!-- Button trigger modal -->
+                <button type="button" class="mt-2 btn btn-secondary btn-outline-light position-absolute end-50 " data-bs-toggle="modal" data-bs-target="#staticBackdrop">
+                    Guardar
+                </button>
+                
+                <!-- Modal -->
+                <div class="modal fade" id="staticBackdrop" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="staticBackdropLabel" aria-hidden="true">
+                    <div class="modal-dialog modal-dialog-centered">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                            <h1 class="modal-title fs-5" id="staticBackdropLabel">Confirmación de modificación</h1>
+                            </div>
+                            <div class="modal-body">
+                            <p>¿Está seguro que desea confirmar el turno con la información actual?</p>
+                            </div>
+                            <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+                            <button type="submit" class="btn btn-confirm">Modificar</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            <!-- end confirm modal -->
+        </form><br>
+    </div>
+{% endblock %}

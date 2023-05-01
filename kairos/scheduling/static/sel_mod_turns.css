@@ -29,3 +29,9 @@ form div{
     box-shadow:0 0 0 .25rem #E9862F94;
     color: white;
 }
+
+.form-displayer-modify{
+    background-color: #c1c1c1;
+    margin: 2em;
+    border-radius: 2em;
+}
