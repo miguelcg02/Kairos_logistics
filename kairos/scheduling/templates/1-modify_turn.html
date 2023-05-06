@@ -2,7 +2,8 @@
 {% load static %}
 
 {% block styles %}
-<link rel="stylesheet" href="{% static 'sel_mod_turns.css'%}">
+<link rel="stylesheet" href="{% static 'sel_mod_turn.css'%}">
+<script src="{% static 'hide.js'%}"></script>
 {% endblock %}
 
 {% block title %}
@@ -32,12 +33,11 @@
 {% block content %}
 
     <div class="form-displayer-modify">
-        <!-- section to see the calculated time for the service -->
         <form style="margin:  2em;" action="{% url 'confirm_modify' %}" method="post">
             {%csrf_token%}
             <!-- info to keep -->
             <input type="hidden" name="idTurn" value="{{idTurn}}">
-
+            <!-- Data for the service -->
             <h2>Datos del servicio</h2>
             <div class="form-floating">
                 <input class="form-control" type="text" name="cvsName" id="cvsName" value="{{cvsName}}" required readonly>
@@ -46,7 +46,6 @@
             <div class="form-floating">
                 <select class="form-select" id="typeTire" name="typeTire" aria-label="select type tire" required>
                     <option value="{{typeTire}}" selected>{{typeTireName}}</option>
-                    <!-- posible optimización para nombres... requiere más procesamiento -->
                     <option value="1">Automóvil</option>
                     <option value="2">Camioneta</option>
                     <option value="3">Camión</option>
@@ -54,62 +53,72 @@
                 <label for="typeTire">Tipo de llanta</label>
             </div>
             <div class="form-floating">
-                <input class="form-control" type="number" name="quantity" id="quantity" value="{{quantity}}" required>
+                <input class="form-control" type="number" name="quantity" id="quantity" value="{{quantity}}" min="1" step="1" required>
                 <label for="quantity">Cantidad llantas del servicio</label>
             </div>
             {% if rotation %}
             <div class="">
-                <input class="form-check-input" type="checkbox" name="rotation" id="rotation" value="{{rotation}}" checked>
+                <input class="form-check-input" type="checkbox" name="rotation" id="rotation" value="{{rotation}}" onclick="DoCheckUncheckDisplay(this,'quantityRotate','label-quantityRotate')" checked>
                 <label class="form-check-label" for="rotation">Rotación</label>
+            </div>
+            <div class="form-floating">
+                <input class="form-control" type="number" name="quantityRotate" id="quantityRotate" value="{{quantityRotate}}" min="0" step="1" required>
+                <label for="quantityRotate">Cantidad llantas del servicio</label>
             </div>
             {% else %}
             <div class="">
-                <input class="form-check-input" type="checkbox" name="rotation" id="rotation" value="{{rotation}}">
+                <input class="form-check-input" type="checkbox" name="rotation" id="rotation" value="{{rotation}}" onclick="DoCheckUncheckDisplay(this,'quantityRotate','label-quantityRotate')">
                 <label class="form-check-label" for="rotation">Rotación</label>
+            </div>
+            <div class="form-floating">
+                <input class="form-control" type="number" name="quantityRotate" id="quantityRotate" value="{{quantityRotate}}" min="0" step="1" style="display: none;" required>
+                <label for="quantityRotate">Cantidad llantas del servicio</label>
             </div>
             {% endif %}
             <div class="form-floating">
-                <input class="form-control" type="number" name="quantityRotate" id="quantityRotate" value="{{quantityRotate}}" required>
-                <label for="quantityRotate">Cantidad llantas del servicio</label>
-            </div>
-            <div class="form-floating">
-                <input class="form-control" type="number" name="duration" id="duration" value="{{duration}}" required>
+                <input class="form-control" type="number" name="duration" id="duration" value="{{duration}}" min="5" step="1" required>
                 <label for="duration">Duración del servicio</label>
             </div>
             <h2>Fecha y hora</h2>
             <div class="form-floating">
-                <input class="form-control" type="date" name="date" id="date" value="{{date}}" required>
+                <input class="form-control" type="date" name="date" id="date" value="{{date}}" max="{{maxDate}}" required>
                 <label for="date">Fecha</label>
             </div>
             <div class="form-floating">
-                <input class="form-control" type="time" name="hour" id="hour" value="{{hour}}" required>
+                <input class="form-control" type="time" name="hour" id="hour" value="{{hour}}" min="07:45" max="17:15" required>
                 <label for="hour">Hora</label>
             </div>
             <h2>Información de la venta</h2>
             <div class="form-floating">
-                <input class="form-control" type="number" name="bill" id="bill" value="{{bill}}" required>
+                <input class="form-control" type="number" name="bill" id="bill" value="{{bill}}" min="0" step="1" required>
                 <label for="bill">Número factura</label>
             </div>
             <div class="form-floating">
-                <input class="form-control" type="number" name="idCustomer" id="idCustomer" value="{{idCustomer}}" required>
+                <input class="form-control" type="number" name="idCustomer" id="idCustomer" value="{{idCustomer}}" min="0" step="1" required>
                 <label for="idCustomer">Cédula cliente</label>
             </div>
             <div class="form-floating">
-                <input class="form-control" type="text" name="nameCustomer" id="nameCustomer" value="{{nameCustomer}}" required>
+                <input class="form-control" type="text" name="nameCustomer" id="nameCustomer" value="{{nameCustomer}}" maxlength="50" required>
                 <label for="nameCustomer">Nombre cliente</label>
             </div>
             <div class="form-floating">
-                <input class="form-control" type="text" name="telCustomer" id="telCustomer" value="{{telCustomer}}" required>
+                <input class="form-control" type="text" name="telCustomer" id="telCustomer" value="{{telCustomer}}" maxlength="15" required>
                 <label for="telCustomer">Teléfono de contacto</label>
             </div>
+            <h2>Especificación del cambio del turno</h2>
+            <div class="input-group">
+                <label class="input-group-text" for="comment">Explique por qué se está modificando el servicio</label>
+                <textarea class="form-control" type="text" name="comment" id="comment" maxlength="300" required>{{comment}}</textarea>
+            </div>
             <!-- start confirm modal -->
+            <div style="display: flex; justify-content: center; gap: 1em; flex-wrap: wrap;">
                 <!-- Button trigger modal -->
-                <button type="button" class="mt-2 btn btn-secondary btn-outline-light position-absolute end-50 " data-bs-toggle="modal" data-bs-target="#staticBackdrop">
+                <button type="button" class="mt-2 btn btn-secondary btn-outline-light" data-bs-toggle="modal" data-bs-target="#confirm_modal">
                     Guardar
                 </button>
                 
                 <!-- Modal -->
-                <div class="modal fade" id="staticBackdrop" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="staticBackdropLabel" aria-hidden="true">
+                <div class="modal fade" id="confirm_modal" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="confirm_modal" aria-hidden="true">
                     <div class="modal-dialog modal-dialog-centered">
                         <div class="modal-content">
                             <div class="modal-header">
@@ -126,6 +135,35 @@
                     </div>
                 </div>
             <!-- end confirm modal -->
-        </form><br>
+        </form>
+        <form action="{% url 'delete_service' %}" method="post">
+            {%csrf_token%}
+            <!-- info to keep -->
+            <input type="hidden" name="idTurn" value="{{idTurn}}">
+            <!-- start delete modal -->
+                <!-- Button trigger modal -->
+                <button type="button" class="mt-2 btn btn-secondary btn-outline-light " data-bs-toggle="modal" data-bs-target="#delete_modal">
+                    Eliminar
+                </button>    
+                <!-- Modal -->
+                <div class="modal fade" id="delete_modal" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="delete_modal" aria-hidden="true">
+                    <div class="modal-dialog modal-dialog-centered">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                            <h1 class="modal-title fs-5" id="staticBackdropLabel">Confirmación de eliminación</h1>
+                            </div>
+                            <div class="modal-body">
+                            <p>¿Está seguro que desea eliminar el turno actual?</p>
+                            </div>
+                            <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+                            <button type="submit" class="btn btn-confirm">Eliminar</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            <!-- end delete modal -->
+        </form>
+            </div><!--div to flex the buttons-->
     </div>
 {% endblock %}

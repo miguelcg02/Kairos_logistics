@@ -25,6 +25,7 @@ urlpatterns = [
     path('modify_schedules/',views.modify_schedules,name='modify_schedules'),
     path('modify_turn/',views.modify_turn,name='modify_turn'),
     path('confirm_modify/',views.confirm_modify,name='confirm_modify'),
+    path('delete_service/',views.delete_service,name='delete_service'),
     path('validate_service_provided/',views.validate_service_provided,name='validate_service_provided'),
     path('excel/', views.createReport, name='excel'),
     path('logout/', logout_then_login, name='logout'),

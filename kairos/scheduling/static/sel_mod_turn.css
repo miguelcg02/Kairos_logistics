@@ -35,3 +35,8 @@ form div{
     margin: 2em;
     border-radius: 2em;
 }
+
+button{
+    width: 82px;
+    margin-top: 0.5em;
+}

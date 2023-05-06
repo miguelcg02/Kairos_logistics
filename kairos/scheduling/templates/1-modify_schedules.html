@@ -3,7 +3,7 @@
 
 {% block styles %}
 <link rel="stylesheet" href="{% static 'schedules.css'%}">
-<link rel="stylesheet" href="{% static 'asign_turns.css'%}">
+<link rel="stylesheet" href="{% static 'sel_mod_turn.css'%}">
 {% endblock %}
 
 {% block title %}
@@ -43,10 +43,10 @@
                 {%csrf_token%}
                 <h2>Selección de fecha</h2>
                 <div class="form-floating">
-                    <input class="form-control" type="date" name="date" id="date" value="{{date}}" required>
+                    <input class="form-control" type="date" name="date" id="date" value="{{date}}" max="{{maxDate}}" required>
                     <label for="date">Fecha</label>
                 </div>
-                <button type="submit" class="ms-2 mt-2 btn btn-secondary btn-outline-light ">Ver</button>
+                <button type="submit" class="btn btn-secondary btn-outline-light ">Ver</button>
             </form>
             {% if date %} 
             <hr>
@@ -61,7 +61,9 @@
                         </select>
                         <label for="turn">Revisar el turno de:</label>
                     </div>
-                    <button type="submit" class="mt-2 btn btn-secondary btn-outline-light position-absolute end-0 ">Modificar</button>
+                    <div style="display: flex;justify-content: end;">
+                        <button type="submit" class="btn btn-secondary btn-outline-light">Modificar</button>
+                    </div>
                 </form>
             {% endif %}
             <br><br><hr>
@@ -69,10 +71,12 @@
             <form style="margin: 2em;" action="{% url 'modify_turn' %}" method="post">
                 {%csrf_token%}
                 <div class="form-floating">
-                    <input class="form-control" id="bill" value="bill" type="number" name="bill" required>
+                    <input class="form-control" id="bill" value="bill" type="number" name="bill" min="0" step="1" required>
                     <label for="bill">Factura del servicio:</label>
                 </div>
-                <button type="submit" class="mt-2 btn btn-secondary btn-outline-light position-absolute end-0 ">Modificar</button>
+                <div style="display: flex;justify-content: end;">
+                    <button type="submit" class="btn btn-secondary btn-outline-light">Modificar</button>
+                </div>
             </form>
         </div>
     </div>
