@@ -5,6 +5,10 @@
     <link rel="stylesheet" href="{% static '0-reports.css'%}">
 {% endblock %}
 
+{% block title %}
+    Reportes
+{% endblock %}
+
 <!-- Selecting navbar -->
 {% block navbar %}
     <!-- IF MANAGER -->
@@ -78,7 +82,7 @@
                 </div>    
             </div>
             <div class="panel-footer">
-                <a class="btn btn-lg px-3 btn-outline-dark" role="button" href="{% url 'excel' %}">Generar reporte</a>
+                <a class="btn btn-lg px-3 btn-outline-dark" role="button" type="submit" href="{% url 'excel' %}">Generar reporte</a>
             </div>
         </div>
     </div>

@@ -299,6 +299,9 @@ def reports(request):
     cvsList = CVS.objects.all()
     return render(request,template_name="0-reports.html", context={'role':getRole(request), 'cvsList':cvsList})
 
+def preview(request):
+    return render(request, template_name="0-previewExcel.html", context={'role':getRole(request)})
+
 #---------- auxiliar methods for see_schedules-------------------#
 def delta2time(delta):
     noon=timedelta(hours=12)
