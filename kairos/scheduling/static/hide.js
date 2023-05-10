@@ -1,10 +1,10 @@
-function DoCheckUncheckDisplay(d,dchecked1,dchecked2){
-    if( d.checked == true ){
-        document.getElementById(dchecked1).style.display = "block";
-        document.getElementById(dchecked2).style.display = "block";
+function hideShow(_check,_obj1,_obj2){
+    if( _check.checked == true ){
+        document.getElementById(_obj1).style.display = "block";
+        document.getElementById(_obj2).style.display = "block";
     }
     else{
-        document.getElementById(dchecked1).style.display = "none";
-        document.getElementById(dchecked2).style.display = "none";
+        document.getElementById(_obj1).style.display = "none";
+        document.getElementById(_obj2).style.display = "none";
     }
 }

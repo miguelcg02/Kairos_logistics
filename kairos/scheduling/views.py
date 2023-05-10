@@ -561,17 +561,27 @@ def see_schedules(request):
     if(warningPage):
         return redirect(warningPage)
     
+    role=getRole(request)
+
+    if(role==3):
+        #we take the name of the admin -> cvsName
+        cvsName=request.user.first_name
+        #events' array (freetime and services) for the context
+        sc_days=toSee_schedules(cvsName)
+        return render(request,template_name="1-2-3-see_schedules.html", context={'cvsName':cvsName,'sc_days':sc_days,'role':role})
+
+    
     if(request.method=='POST'):
         cvsName=request.POST.get('cvsName')
         #events' array (freetime and services) for the context
         sc_days=toSee_schedules(cvsName)
         #cvs' names for the combo box
         listCVSs=listCVS(cvsName)
-        return render(request,template_name="1-2-3-see_schedules.html", context={'cvsName':cvsName,'sc_days':sc_days,'listCVSs':listCVSs,'role':getRole(request)})
+        return render(request,template_name="1-2-3-see_schedules.html", context={'cvsName':cvsName,'sc_days':sc_days,'listCVSs':listCVSs,'role':role})
     else:
         #cvs' names for the combo box
         listCVSs=listCVS('')
-        return render(request,template_name="1-2-3-see_schedules.html", context={'listCVSs':listCVSs,'role':getRole(request)})
+        return render(request,template_name="1-2-3-see_schedules.html", context={'listCVSs':listCVSs,'role':role})
     
 def asign_turns(request):
     warningPage=redirectInvalidPage(request,[1,2])

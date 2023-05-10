@@ -58,7 +58,7 @@
             </div>
             {% if rotation %}
             <div class="">
-                <input class="form-check-input" type="checkbox" name="rotation" id="rotation" value="{{rotation}}" onclick="DoCheckUncheckDisplay(this,'quantityRotate','label-quantityRotate')" checked>
+                <input class="form-check-input" type="checkbox" name="rotation" id="rotation" value="{{rotation}}" onclick="hideShow(this,'quantityRotate','label-quantityRotate')" checked>
                 <label class="form-check-label" for="rotation">Rotación</label>
             </div>
             <div class="form-floating">
@@ -67,7 +67,7 @@
             </div>
             {% else %}
             <div class="">
-                <input class="form-check-input" type="checkbox" name="rotation" id="rotation" value="{{rotation}}" onclick="DoCheckUncheckDisplay(this,'quantityRotate','label-quantityRotate')">
+                <input class="form-check-input" type="checkbox" name="rotation" id="rotation" value="{{rotation}}" onclick="hideShow(this,'quantityRotate','label-quantityRotate')">
                 <label class="form-check-label" for="rotation">Rotación</label>
             </div>
             <div class="form-floating">

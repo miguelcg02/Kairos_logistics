@@ -30,6 +30,7 @@
 {% endblock %}
 
 {% block content %}
+    {% if role != 3 %}
     <!-- section to select the cvs -->
     <form style="margin: 5em 2em;" action="{% url 'see_schedules' %}" method="post">
         {%csrf_token%}
@@ -46,6 +47,7 @@
         <button type="submit" class="ms-2 mt-2 btn btn-secondary btn-outline-light position-absolute end-50">Ver</button>
     </form>
     <hr>
+    {% endif %}
     <!-- section to see the schedule -->
     {% if cvsName %} 
         {% include 'base_schedule.html' %}
