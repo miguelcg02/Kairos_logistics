@@ -353,7 +353,7 @@ def delta2time(delta):
     if(hours==0):
         hours=12
 
-    if(minutes/10>0):
+    if(minutes//10>0):
         hour=str(hours)+':'+str(minutes)
     else:
         hour=str(hours)+':0'+str(minutes)
@@ -486,7 +486,7 @@ def toSee_schedules(cvsName):
     contDay=0
     while(contDay<7):
         #have to avoid the sunday
-        if(actualDate.isoweekday()==7):
+        if(actualDate.weekday()==6):
             increment=timedelta(days=1)
             actualDate+=increment
             continue
@@ -521,7 +521,7 @@ def toSee_schedules(cvsName):
 
         #day ends at...
         # if sturday at 12:00m 
-        if(actualDate.isoweekday()==6):
+        if(actualDate.weekday()==5):
             end=timedelta(hours=12)
         # else at 05:15pm
         else:
@@ -654,6 +654,43 @@ def valDuration(request,duration):
 
     return problems
 
+def recommendTurns(cvs,duration):
+    weekdays=["Lunes","Martes","Miércoles","Jueves","Viernes","Sábado"]
+    actualDate=date.today()
+    contDay=0
+    listOptions=[]
+    while(contDay<7):
+        weekday=actualDate.weekday()
+        #have to avoid the sunday
+        if(weekday==6):
+            increment=timedelta(days=1)
+            actualDate+=increment
+            continue
+
+        dateTurns=Turn.objects.filter(cvs__name=cvs).filter(date=actualDate).order_by('hour')
+
+        begHour=timedelta(hours=7,minutes=45)
+        for turn in dateTurns:
+            toCheck=begHour+timedelta(minutes=duration)
+            li=timedelta(hours=turn.hour.hour,minutes=turn.hour.minute)
+            if(li>=toCheck):
+                break
+            else:
+                begHour=li+timedelta(minutes=turn.duration)
+
+        endHour=begHour+timedelta(minutes=duration)
+
+        if((weekday!=5 and endHour<=timedelta(hours=17,minutes=15)) or (weekday==5 and endHour<=timedelta(hours=12,minutes=0))):
+            listOptions.append(weekdays[weekday]+' '+str(actualDate.day)+' '+delta2time(begHour))        
+
+        actualDate+=timedelta(days=1)
+        contDay+=1
+
+    if(not listOptions):
+        listOptions.append("No hay horarios disponibles esta semana")
+    
+    return listOptions
+
 def time_turns(request):
     warningPage=redirectInvalidPage(request,[1,2])
     if(warningPage):
@@ -687,8 +724,9 @@ def time_turns(request):
             return redirect('asign_turns')
         else:
             duration=calculateTime(typeTire,quantity,rotation,quantityRotate)
+            recommendations=recommendTurns(cvsName,duration)
 
-            return render(request,template_name="1-2-time_turns.html", context={'cvsName':cvsName,'sc_days':sc_days,'listCVSs':listCVSs,'typeTire':typeTire,'quantity':quantity,'rotation':rotation,'quantityRotate':quantityRotate,'duration':duration,'role':getRole(request)})
+            return render(request,template_name="1-2-time_turns.html", context={'cvsName':cvsName,'sc_days':sc_days,'listCVSs':listCVSs,'typeTire':typeTire,'quantity':quantity,'rotation':rotation,'quantityRotate':quantityRotate,'duration':duration,'recommendations':recommendations,'role':getRole(request)})
     else:
         messages.error(request,"No puedes acceder a este apartado sin haber llenado la información inicial del servicio")
         return redirect('asign_turns')   
@@ -708,7 +746,10 @@ def select_turns(request):
         duration=request.POST.get('duration')
         #limits for the inputs
         minDate=date.today().isoformat()
-        maxDate=(date.today()+timedelta(days=7)).isoformat()
+        if(date.today().weekday==6):
+            maxDate=(date.today()+timedelta(days=7)).isoformat()
+        else:
+            maxDate=(date.today()+timedelta(days=7)).isoformat()
         deltaMax=timedelta(hours=17,minutes=15)
         deltaDuration=timedelta(minutes=int(duration))
         s = (deltaMax-deltaDuration).seconds
@@ -721,7 +762,9 @@ def select_turns(request):
         print(maxTime)
         #events' array (freetime and services) for the context
         sc_days=toSee_schedules(cvsName)
-        return render(request,template_name="1-2-select_turns.html", context={'cvsName':cvsName,'sc_days':sc_days,'typeTire':typeTire,'quantity':quantity,'rotation':rotation,'quantityRotate':quantityRotate,'duration':duration,'minDate':minDate,'maxDate':maxDate,'maxTime':maxTime,'role':getRole(request)})
+        #show the recommendations
+        recommendations=recommendTurns(cvsName,int(duration))
+        return render(request,template_name="1-2-select_turns.html", context={'cvsName':cvsName,'sc_days':sc_days,'typeTire':typeTire,'quantity':quantity,'rotation':rotation,'quantityRotate':quantityRotate,'duration':duration,'minDate':minDate,'maxDate':maxDate,'maxTime':maxTime,'recommendations':recommendations,'role':getRole(request)})
     else:
         messages.error(request,"No puedes acceder a este apartado sin haber llenado la información inicial del servicio")
         return redirect('asign_turns')
@@ -731,9 +774,24 @@ def valDateHour(request,cvs,dateF,hour,duration,modAs,exclude):#mod=0,As=1
     problems=False
     if(modAs):
         dateTurns=Turn.objects.filter(cvs__name=cvs).filter(date=dateF).order_by('hour')
+        #turns must be scheduled since "today" until 7 valid days(no before)
+        if(dateF<date.today()):
+            problems=True
+            messages.error(request,"El servicio no puede asignarse un día previo a hoy")
     else:
         dateTurns=Turn.objects.filter(cvs__name=cvs).filter(date=dateF).exclude(hour=exclude).order_by('hour')
         print("we are avoiding: ",exclude)
+
+    #turns must be scheduled since "today" until 7 valid days(no after)
+    if(date.today().weekday==6):
+        #if we look the calendar on sunday there will be 1 day more
+        if((dateF-date.today()).days>8):
+            problems=True
+            messages.error(request,"El servicio no puede asignarse un día posterior a 7 días hábiles")
+    else:
+        if((dateF-date.today()).days>7):
+            problems=True
+            messages.error(request,"El servicio no puede asignarse un día posterior a 7 días hábiles")
     actualTurns=[]
     for turn in dateTurns:
         print("actual hour: ",turn.hour)
@@ -842,7 +900,10 @@ def confirm_turns(request):
 
         if(flag1 or  flag2 or flag3):
             minDate=date.today().isoformat()
-            maxDate=(date.today()+timedelta(days=7)).isoformat()
+            if(date.today().weekday==6):
+                maxDate=(date.today()+timedelta(days=8)).isoformat()
+            else:
+                maxDate=(date.today()+timedelta(days=7)).isoformat()
             deltaMax=timedelta(hours=17,minutes=15)
             deltaDuration=timedelta(minutes=int(duration))
             s = (deltaMax-deltaDuration).seconds
@@ -875,7 +936,7 @@ def confirm_turns(request):
                 scheduledBy = Profile.objects.get(user=request.user)
             )
             newTurn.save()
-            messages.success(request,"Se ha agendado correctamente el turno con id: "+str(newTurn.id)+" en CVS: "+cvsName+" el día "+dateF.strftime("%d/%m/%Y")+" a las "+hour.strftime("%I:%M %p"))
+            messages.success(request,"Se ha agendado correctamente el turno en CVS: "+cvsName+" el día "+dateF.strftime("%d/%m/%Y")+" a las "+hour.strftime("%I:%M %p"))
 
             return redirect('see_schedules')
 
@@ -889,7 +950,10 @@ def modify_schedules(request):
     #events' array (freetime and services) for the context
     sc_days=toSee_schedules(cvsName)
     #limit for the date input
-    maxDate=(date.today()+timedelta(days=7)).isoformat()
+    if(date.today().weekday==6):
+        maxDate=(date.today()+timedelta(days=8)).isoformat()
+    else:
+        maxDate=(date.today()+timedelta(days=7)).isoformat()
 
     if(request.method=='POST'):
         dateToSearch=date.fromisoformat(request.POST.get('date'))
@@ -959,7 +1023,10 @@ def modify_turn(request):
     telCustomer= turn.telCustomer
     comment=turn.comment
     #limit for the date input
-    maxDate=(date.today()+timedelta(days=7)).isoformat()
+    if(date.today().weekday==6):
+        maxDate=(date.today()+timedelta(days=7)).isoformat()
+    else:
+        maxDate=(date.today()+timedelta(days=7)).isoformat()
 
     return render(request,template_name="1-modify_turn.html",
         context={
@@ -1038,7 +1105,7 @@ def confirm_modify(request):
         modTurn.comment=request.POST.get('comment')
 
         modTurn.save()
-        messages.success(request,"Se actualizó correctamente el turno con id: "+str(modTurn.id)+" en CVS: "+_cvs+" para el día "+_date.strftime("%d/%m/%Y")+" a las "+_hour.strftime("%I:%M %p"))
+        messages.success(request,"Se actualizó correctamente el turno en CVS: "+_cvs+" para el día "+_date.strftime("%d/%m/%Y")+" a las "+_hour.strftime("%I:%M %p"))
         return redirect('see_schedules')
 
 def delete_service(request):

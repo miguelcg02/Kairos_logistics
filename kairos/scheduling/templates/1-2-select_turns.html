@@ -57,8 +57,11 @@
                         <p class="card-text" style="background-color: #E9862F; color: white; text-shadow: 0 0 2px black ; border-radius: 5px; padding: 5px;">El tiempo calculado fue de {{duration}} minutos</p>
                         <h6 class="card-subtitle mb-2 text-body-secondary">Recuerde que el tiempo calculado ya incluye los 5 minutos de descanso del operario</h6>
                         <!-- content space for the recommendations -->
-                        <!-- falta el for -->
-                        <p class="card-text">Some quick</p>
+                        <ul>
+                            {% for reco in recommendations %}
+                            <li>{{reco}}</li>
+                            {% endfor %}
+                        </ul>
                     </div>
                 </div>
                 <div class="form-floating">
