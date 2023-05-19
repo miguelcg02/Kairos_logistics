@@ -1,4 +1,5 @@
 from django.shortcuts import render, redirect
+from django.contrib.auth import authenticate, login, logout
 from .models import *
 from .forms import CreateUserForm
 from django.contrib import messages
@@ -15,26 +16,53 @@ from django.http import HttpResponse
 def getRole(request):
     actualProfile=Profile.objects.get(user=request.user)
     return actualProfile.rol
+
+def redirectInvalidPage(request,listAvailables):
+    actualRole=getRole(request)
+    if(actualRole not in listAvailables):
+        messages.warning(request,"Ups, creo que no tienes acceso a esa página")
+        if(actualRole==0):
+            return 'reports'
+        elif(actualRole==1):
+            return 'see_schedules'
+        elif(actualRole==2):
+            return 'see_schedules'
+        elif(actualRole==3):
+            return 'see_schedules'
 #-----------------------------------------#
 def login_page(request):
+    if request.method == 'POST':
+        username = request.POST.get('username')
+        password = request.POST.get('password')
+        user = authenticate(username=username, password=password)
+
+        if user is not None:
+            profile = Profile.objects.get(user=user.id)
+            role = profile.rol
+            login(request, user)
+            messages.success(request, f'¡Bienvenido {user.username}, nos encanta tenerte de vuelta!')
+
+            if role == 0:
+                context = {'role':role}
+                return render(request,template_name="0-manager/home-manager.html", context=context)
+            elif role == 1:
+                context = {'role':role}
+                return render(request,template_name="1-admin/home-admin.html", context=context)
+            elif role == 2:
+                context = {'role':role}
+                return render(request,template_name="2-adviser/home-adviser.html", context=context)
+            elif role == 3:
+                context = {'role':role}
+                return render(request,template_name="3-operator/home-operator.html", context=context)
+            else:
+                messages.error(request, 'Ocurrio un error inesperado!')
+                return redirect('login')
+        else:
+            messages.error(request, '¡El usuario y la contraseña no coinciden, por favor vuelva a intentarlo!')
+            return redirect('login')
+    
     if request.method == 'GET':
         return render(request, template_name='login.html')
-    
-    # if request.method == 'POST':
-    #     username = request.POST.get('username')
-    #     password = request.POST.get('password')
-    #     user = authenticate(username=username, password=password)
-
-    # if user is not None:
-    #     login(request, user)
-    #     messages.success(request, f'¡Bienvenido {user.username}, nos encanta tenerte de vuelta!')
-    #     return redirect('home')
-    # else:
-    #     messages.error(request, '¡El usuario y la contraseña no coinciden, por favor vuelva a intentarlo!')
-    #     return redirect('login')
-
-
-    return render(request,template_name="login.html")
 
 def home_manager(request):
     return render(request,template_name="0-manager/home-manager.html")
@@ -53,24 +81,36 @@ def block_schedule(request):
 
 def create_user(request):
     form = CreateUserForm()
+
     if request.method == "POST":
+        form = CreateUserForm(request.POST)
         if form.is_valid():
-            rol = request.POST.get('rol') #Revisar que el name sea rol
+            role = request.POST.get('rol') #Revisar que el name sea rol
             form.save()
-            Actual_user = User.objects.get(username= request.POST["username"])
-            newProfile = Profile(user = Actual_user, rol=rol)
+            new_user = User.objects.get(username= request.POST["username"])
+            newProfile = Profile(user=new_user, rol=role)
             newProfile.save()
             messages.success(request, '¡El usuario fue creado exitosamente!')
-            return render(request,template_name="0-1-create_user.html")
+            return render(request,template_name="0-1-create_user.html", context={'form': form})
         else:
             messages.error(request, 'Error al crear el usuario, por favor verique la información')
             return render(request,template_name="0-1-create_user.html", context={'form': form})
 
     return render(request,template_name="0-1-create_user.html", context={'form': form})
 
-def delete_user(request):
-    return render(request,template_name="0-1-delete_user.html")
+def delete_user(request):    
 
+    if request.method == 'POST':
+        user_deleted = request.POST.get('user_deleted')
+        user_to_delete = User.objects.get(id=user_deleted)
+        profile_to_delete = Profile.objects.get(user=user_to_delete)
+        profile_to_delete.delete()
+        user_to_delete.delete()
+    
+    users = User.objects.all().order_by('username').values()
+    context={'users':users}
+    return render(request,template_name="0-1-delete_user.html",context=context)
+        
 def createReport(request):
     query = Turn.objects.all()
     workBook = Workbook()
@@ -294,8 +334,8 @@ def createReport(request):
     response["Content-Disposition"] = content
     workBook.save(response)
     return response
-    
-def reports(request):
+   
+def reports(request):    
     cvsList = CVS.objects.all()
     return render(request,template_name="0-reports.html", context={'role':getRole(request), 'cvsList':cvsList})
 
@@ -316,7 +356,7 @@ def delta2time(delta):
     if(hours==0):
         hours=12
 
-    if(minutes/10>0):
+    if(minutes//10>0):
         hour=str(hours)+':'+str(minutes)
     else:
         hour=str(hours)+':0'+str(minutes)
@@ -369,6 +409,8 @@ def fillFree(li,ls,list):
 
 def processData(event):
     info=[]
+    #we get the id
+    info.append("turn"+str(event.id))
     #we get date
     months=["Enero","Febrero","Marzo","Abril","Mayo","Junio","Julio","Agosto","Septiembre","Octubre","Noviembre","Diciembre"]
     days=["Lunes","Martes","Miércoles","Jueves","Viernes","Sábado"]
@@ -447,7 +489,7 @@ def toSee_schedules(cvsName):
     contDay=0
     while(contDay<7):
         #have to avoid the sunday
-        if(actualDate.isoweekday()==7):
+        if(actualDate.weekday()==6):
             increment=timedelta(days=1)
             actualDate+=increment
             continue
@@ -482,7 +524,7 @@ def toSee_schedules(cvsName):
 
         #day ends at...
         # if sturday at 12:00m 
-        if(actualDate.isoweekday()==6):
+        if(actualDate.weekday()==5):
             end=timedelta(hours=12)
         # else at 05:15pm
         else:
@@ -518,27 +560,43 @@ def listCVS(cvsName):
     return listNames
 
 def see_schedules(request):
+    warningPage=redirectInvalidPage(request,[1,2,3])
+    if(warningPage):
+        return redirect(warningPage)
+    
+    role=getRole(request)
+
+    if(role==3):
+        #we take the name of the admin -> cvsName
+        cvsName=request.user.first_name
+        #events' array (freetime and services) for the context
+        sc_days=toSee_schedules(cvsName)
+        return render(request,template_name="1-2-3-see_schedules.html", context={'cvsName':cvsName,'sc_days':sc_days,'role':role})
+
+    
     if(request.method=='POST'):
         cvsName=request.POST.get('cvsName')
         #events' array (freetime and services) for the context
         sc_days=toSee_schedules(cvsName)
         #cvs' names for the combo box
         listCVSs=listCVS(cvsName)
-        return render(request,template_name="1-2-3-see_schedules.html", context={'cvsName':cvsName,'sc_days':sc_days,'listCVSs':listCVSs,'role':getRole(request)})
+        return render(request,template_name="1-2-3-see_schedules.html", context={'cvsName':cvsName,'sc_days':sc_days,'listCVSs':listCVSs,'role':role})
     else:
         #cvs' names for the combo box
         listCVSs=listCVS('')
-        return render(request,template_name="1-2-3-see_schedules.html", context={'listCVSs':listCVSs,'role':getRole(request)})
+        return render(request,template_name="1-2-3-see_schedules.html", context={'listCVSs':listCVSs,'role':role})
     
 def asign_turns(request):
+    warningPage=redirectInvalidPage(request,[1,2])
+    if(warningPage):
+        return redirect(warningPage)
+    
     if(request.method=='POST'):
-        if(request.POST.get('cvsName')):
-            cvsName=request.POST.get('cvsName')
-        else:
-            cvsName=request.POST.get('sc-select')
+        #get the selected name to show the preview
+        cvsName=request.POST.get('cvsName')
         #events' array (freetime and services) for the context
         sc_days=toSee_schedules(cvsName)
-        #cvs' names for the combo box
+        #cvs' names for the combo box already selected
         listCVSs=listCVS(cvsName)
         return render(request,template_name="1-2-asign_turns.html", context={'cvsName':cvsName,'sc_days':sc_days,'listCVSs':listCVSs,'role':getRole(request)})
     else:
@@ -599,15 +657,57 @@ def valDuration(request,duration):
 
     return problems
 
+def recommendTurns(cvs,duration):
+    weekdays=["Lunes","Martes","Miércoles","Jueves","Viernes","Sábado"]
+    actualDate=date.today()
+    contDay=0
+    listOptions=[]
+    while(contDay<7):
+        weekday=actualDate.weekday()
+        #have to avoid the sunday
+        if(weekday==6):
+            increment=timedelta(days=1)
+            actualDate+=increment
+            continue
+
+        dateTurns=Turn.objects.filter(cvs__name=cvs).filter(date=actualDate).order_by('hour')
+
+        begHour=timedelta(hours=7,minutes=45)
+        for turn in dateTurns:
+            toCheck=begHour+timedelta(minutes=duration)
+            li=timedelta(hours=turn.hour.hour,minutes=turn.hour.minute)
+            if(li>=toCheck):
+                break
+            else:
+                begHour=li+timedelta(minutes=turn.duration)
+
+        endHour=begHour+timedelta(minutes=duration)
+
+        if((weekday!=5 and endHour<=timedelta(hours=17,minutes=15)) or (weekday==5 and endHour<=timedelta(hours=12,minutes=0))):
+            listOptions.append(weekdays[weekday]+' '+str(actualDate.day)+' '+delta2time(begHour))        
+
+        actualDate+=timedelta(days=1)
+        contDay+=1
+
+    if(not listOptions):
+        listOptions.append("No hay horarios disponibles esta semana")
+    
+    return listOptions
+
 def time_turns(request):
+    warningPage=redirectInvalidPage(request,[1,2])
+    if(warningPage):
+        return redirect(warningPage)
+    
     if(request.method=='POST'):
+        #data to validate
         cvsName=request.POST.get('cvsName')
-        typeTire=int(request.POST.get('typeTire'))
-        quantity=float(request.POST.get('quantity'))
+        typeTire=request.POST.get('typeTire')
+        quantity=int(request.POST.get('quantity'))
         flag1=valQuantity(request,quantity)
         if(request.POST.get('rotation')):
             rotation="True"
-            quantityRotate=float(request.POST.get('quantityRotate'))
+            quantityRotate=int(request.POST.get('quantityRotate'))
             flag2=valQuantityRotate(request,quantityRotate,quantity)
         else:
             rotation=""
@@ -624,51 +724,80 @@ def time_turns(request):
 
         #validation
         if(flag1 or flag2):
-            return render(request,template_name="1-2-asign_turns.html", context={'cvsName':cvsName,'sc_days':sc_days,'listCVSs':listCVSs,'role':getRole(request)})
+            return redirect('asign_turns')
         else:
-            #fixing some fields before sending
-            quantity=int(quantity)
-            quantityRotate=int(quantityRotate)
+            duration=calculateTime(typeTire,quantity,rotation,quantityRotate)
+            recommendations=recommendTurns(cvsName,duration)
 
-            #validating duration
-            if(request.POST.get('duration')):
-                duration=float(request.POST.get('duration'))
-                flag3=valDuration(request,duration)
-                if(flag3):
-                    duration=calculateTime(typeTire,quantity,rotation,quantityRotate)
-                    
-                    return render(request,template_name="1-2-time_turns.html", context={'cvsName':cvsName,'sc_days':sc_days,'listCVSs':listCVSs,'typeTire':typeTire,'quantity':quantity,'rotation':rotation,'quantityRotate':quantityRotate,'duration':duration,'role':getRole(request)})
-                else:
-                    duration=int(duration)
-            else:
-                duration=calculateTime(typeTire,quantity,rotation,quantityRotate)
-
-            return render(request,template_name="1-2-time_turns.html", context={'cvsName':cvsName,'sc_days':sc_days,'listCVSs':listCVSs,'typeTire':typeTire,'quantity':quantity,'rotation':rotation,'quantityRotate':quantityRotate,'duration':duration,'role':getRole(request)})
+            return render(request,template_name="1-2-time_turns.html", context={'cvsName':cvsName,'sc_days':sc_days,'listCVSs':listCVSs,'typeTire':typeTire,'quantity':quantity,'rotation':rotation,'quantityRotate':quantityRotate,'duration':duration,'recommendations':recommendations,'role':getRole(request)})
     else:
-        #cvs' names for the combo box
-        listCVSs=listCVS('')
-        return render(request,template_name="1-2-time_turns.html",context={'listCVSs':listCVSs,'role':getRole(request)})   
+        messages.error(request,"No puedes acceder a este apartado sin haber llenado la información inicial del servicio")
+        return redirect('asign_turns')   
     
 def select_turns(request):
+    warningPage=redirectInvalidPage(request,[1,2])
+    if(warningPage):
+        return redirect(warningPage)
+    
     if(request.method=='POST'):
+        #validated data
         cvsName=request.POST.get('cvsName')
-        typeTire=int(request.POST.get('typeTire'))
-        quantity=int(request.POST.get('quantity'))
+        typeTire=request.POST.get('typeTire')
+        quantity=request.POST.get('quantity')
         rotation=request.POST.get('rotation')
-        quantityRotate=int(request.POST.get('quantityRotate'))
-        duration=int(request.POST.get('duration'))
+        quantityRotate=request.POST.get('quantityRotate')
+        duration=request.POST.get('duration')
+        #limits for the inputs
+        minDate=date.today().isoformat()
+        if(date.today().weekday==6):
+            maxDate=(date.today()+timedelta(days=7)).isoformat()
+        else:
+            maxDate=(date.today()+timedelta(days=7)).isoformat()
+        deltaMax=timedelta(hours=17,minutes=15)
+        deltaDuration=timedelta(minutes=int(duration))
+        s = (deltaMax-deltaDuration).seconds
+        hours,remainder = divmod(s, 3600)
+        minutes= remainder//60
+        maxTime=('{:02}:{:02}'.format(int(hours), int(minutes)))
+        #debug
+        print(minDate)
+        print(maxDate)
+        print(maxTime)
         #events' array (freetime and services) for the context
         sc_days=toSee_schedules(cvsName)
-        return render(request,template_name="1-2-select_turns.html", context={'cvsName':cvsName,'sc_days':sc_days,'typeTire':typeTire,'quantity':quantity,'rotation':rotation,'quantityRotate':quantityRotate,'duration':duration,'role':getRole(request)})
+        #show the recommendations
+        recommendations=recommendTurns(cvsName,int(duration))
+        return render(request,template_name="1-2-select_turns.html", context={'cvsName':cvsName,'sc_days':sc_days,'typeTire':typeTire,'quantity':quantity,'rotation':rotation,'quantityRotate':quantityRotate,'duration':duration,'minDate':minDate,'maxDate':maxDate,'maxTime':maxTime,'recommendations':recommendations,'role':getRole(request)})
     else:
-        return render(request,template_name="1-2-select_turns.html",context={'role':getRole(request)})
-
+        messages.error(request,"No puedes acceder a este apartado sin haber llenado la información inicial del servicio")
+        return redirect('asign_turns')
+    
 #---------- auxiliar methods for confirm asignment-------------------#
-def valDateHour(request,dateF,hour,duration):
+def valDateHour(request,cvs,dateF,hour,duration,modAs,exclude):#mod=0,As=1
     problems=False
-    dateTurns=Turn.objects.filter(date=dateF).order_by('hour')
+    if(modAs):
+        dateTurns=Turn.objects.filter(cvs__name=cvs).filter(date=dateF).order_by('hour')
+        #turns must be scheduled since "today" until 7 valid days(no before)
+        if(dateF<date.today()):
+            problems=True
+            messages.error(request,"El servicio no puede asignarse un día previo a hoy")
+    else:
+        dateTurns=Turn.objects.filter(cvs__name=cvs).filter(date=dateF).exclude(hour=exclude).order_by('hour')
+        print("we are avoiding: ",exclude)
+
+    #turns must be scheduled since "today" until 7 valid days(no after)
+    if(date.today().weekday==6):
+        #if we look the calendar on sunday there will be 1 day more
+        if((dateF-date.today()).days>8):
+            problems=True
+            messages.error(request,"El servicio no puede asignarse un día posterior a 7 días hábiles")
+    else:
+        if((dateF-date.today()).days>7):
+            problems=True
+            messages.error(request,"El servicio no puede asignarse un día posterior a 7 días hábiles")
     actualTurns=[]
     for turn in dateTurns:
+        print("actual hour: ",turn.hour)
         beg=timedelta(hours=turn.hour.hour,minutes=turn.hour.minute)
         end=beg+timedelta(minutes=turn.duration)
         actualTurns.append([beg,end])
@@ -683,9 +812,19 @@ def valDateHour(request,dateF,hour,duration):
     if(endHour>timedelta(hours=17,minutes=15)):
         problems=True
         messages.error(request,"El servicio no puede terminar luego del horario laboral (5:15pm)")
+    
+    #turn must not end later that midday on saturdays
+    if(dateF.weekday()==5 and endHour>timedelta(hours=12)):
+        problems=True
+        messages.error(request,"El servicio no puede terminar luego del horario laboral de los sábados (12:00pm)")
 
-    #beg hour is crashing 
+    #turn must not be scheduled on sundays
+    if(dateF.weekday()==6):
+        problems=True
+        messages.error(request,"El servicio no puede ser asignado en un domingo")
+
     if(len(actualTurns)):
+        #beg hour is crashing 
         for turn in actualTurns:
             if(begHour<turn[1]):
                 if(begHour>turn[0]):
@@ -710,7 +849,7 @@ def valDateHour(request,dateF,hour,duration):
 
                 break
 
-        return problems
+    return problems
 
 def valBill(request,bill):
     problems=False
@@ -739,25 +878,48 @@ def valId(request,id):
     return problems
 
 def confirm_turns(request):
+    warningPage=redirectInvalidPage(request,[1,2])
+    if(warningPage):
+        return redirect(warningPage)
+
     if(request.method=='POST'):
+        #validated data
         cvsName=request.POST.get('cvsName')
-        typeTire=int(request.POST.get('typeTire'))
-        quantity=int(request.POST.get('quantity'))
+        typeTire=request.POST.get('typeTire')
+        quantity=request.POST.get('quantity')
         rotation=request.POST.get('rotation')
-        quantityRotate=int(request.POST.get('quantityRotate'))
-        duration=int(request.POST.get('duration'))
+        quantityRotate=request.POST.get('quantityRotate')
+        duration=request.POST.get('duration')
+        #data to validate
         dateF=date.fromisoformat(request.POST.get('date'))
         hour=time.fromisoformat(request.POST.get('hour'))
-        flag1=valDateHour(request,dateF,hour,duration)
-        bill=float(request.POST.get('bill'))
+        flag1=valDateHour(request,cvsName,dateF,hour,int(duration),1,None)
+        bill=int(request.POST.get('bill'))
         flag2=valBill(request,bill)
-        idCustomer=float(request.POST.get('idCustomer'))
+        idCustomer=int(request.POST.get('idCustomer'))
         flag3=valId(request,idCustomer)
         nameCustomer=request.POST.get('nameCustomer')
         telCustomer=request.POST.get('telCustomer')
 
         if(flag1 or  flag2 or flag3):
-            return render(request,template_name="1-2-select_turns.html", context={'cvsName':cvsName,'typeTire':typeTire,'quantity':quantity,'rotation':rotation,'quantityRotate':quantityRotate,'duration':duration,'role':getRole(request)})
+            minDate=date.today().isoformat()
+            if(date.today().weekday==6):
+                maxDate=(date.today()+timedelta(days=8)).isoformat()
+            else:
+                maxDate=(date.today()+timedelta(days=7)).isoformat()
+            deltaMax=timedelta(hours=17,minutes=15)
+            deltaDuration=timedelta(minutes=int(duration))
+            s = (deltaMax-deltaDuration).seconds
+            hours,remainder = divmod(s, 3600)
+            minutes= remainder//60
+            maxTime=('{:02}:{:02}'.format(int(hours), int(minutes)))
+            #debug
+            print(minDate)
+            print(maxDate)
+            print(maxTime)
+            #events' array (freetime and services) for the context
+            sc_days=toSee_schedules(cvsName)
+            return render(request,template_name="1-2-select_turns.html", context={'cvsName':cvsName,'sc_days':sc_days,'typeTire':typeTire,'quantity':quantity,'rotation':rotation,'quantityRotate':quantityRotate,'duration':duration,'minDate':minDate,'maxDate':maxDate,'maxTime':maxTime,'role':getRole(request)})
         else:
             bill=int(bill)
             idCustomer=int(idCustomer)
@@ -774,20 +936,195 @@ def confirm_turns(request):
                 idCustomer = idCustomer,
                 nameCustomer = nameCustomer,
                 telCustomer = telCustomer,
-                scheduledBy = Profile.objects.get(user=request.user),
-                # dateScheduled = datetime.now(),
-                modifiedBy = Profile.objects.get(user=request.user),
-                dateModified = datetime.now(),
-                done = False,
-                # comment = ""
+                scheduledBy = Profile.objects.get(user=request.user)
             )
             newTurn.save()
-            messages.success(request,"Se ha agendado correctamente el turno con id: "+str(newTurn.id)+" en CVS: "+cvsName+" el día "+dateF.strftime("%d/%m/%Y")+" a las "+hour.strftime("%I:%M %p"))
+            messages.success(request,"Se ha agendado correctamente el turno en CVS: "+cvsName+" el día "+dateF.strftime("%d/%m/%Y")+" a las "+hour.strftime("%I:%M %p"))
 
             return redirect('see_schedules')
 
 def modify_schedules(request):
-    return render(request,template_name="1-modify_schedules.html")
+    warningPage=redirectInvalidPage(request,[1])
+    if(warningPage):
+        return redirect(warningPage)
+    
+    #we take the name of the admin -> cvsName
+    cvsName=request.user.first_name
+    #events' array (freetime and services) for the context
+    sc_days=toSee_schedules(cvsName)
+    #limit for the date input
+    if(date.today().weekday==6):
+        maxDate=(date.today()+timedelta(days=8)).isoformat()
+    else:
+        maxDate=(date.today()+timedelta(days=7)).isoformat()
+
+    if(request.method=='POST'):
+        dateToSearch=date.fromisoformat(request.POST.get('date'))
+        turns=Turn.objects.filter(date=dateToSearch).filter(cvs__name=cvsName).order_by('hour')
+        listTurns=[]
+        for turn in turns:
+            turnL=[]
+            turnL.append(turn.id)
+            beg=timedelta(hours=turn.hour.hour,minutes=turn.hour.minute)
+            end=beg+timedelta(minutes=turn.duration)
+            turnL.append(delta2time(beg)+" - "+delta2time(end))
+            listTurns.append(turnL)
+        
+        if(listTurns):
+            return render(request,template_name="1-modify_schedules.html",context={'cvsName':cvsName,'sc_days':sc_days,'maxDate':maxDate,'listTurns':listTurns,'date':dateToSearch.isoformat(),'role':getRole(request)})
+        else:
+            messages.warning(request,"El día accedido no tiene turnos asignados")
+
+    return render(request,template_name="1-modify_schedules.html",context={'cvsName':cvsName,'sc_days':sc_days,'maxDate':maxDate,'role':getRole(request)})
+
+def modify_turn(request):
+    warningPage=redirectInvalidPage(request,[1])
+    if(warningPage):
+        return redirect(warningPage)
+
+    if(request.POST.get('turn')):
+        #debug
+        print("por turno")
+        #get the turn
+        turn=Turn.objects.get(id=int(request.POST.get('turn')))
+    else:
+        #debug
+        print("por factura")
+        #get the cvs
+        cvsName=request.user.first_name
+        #get the turn of the cvs
+        turn=Turn.objects.filter(cvs__name=cvsName).filter(bill=int(request.POST.get('bill')))
+
+        if(not len(turn)):
+            messages.warning(request,"No se ha encontrado un servicio con factura: "+request.POST.get('bill')+" en este CVS")
+            return redirect('modify_schedules')
+        
+        #get the turn from the queryset
+        turn=turn.first()
+    
+    idTurn= turn.id
+    cvsName= turn.cvs.name
+    typeTire= turn.typeTire
+    if(typeTire==1):
+        typeTireName="Automóvil"
+    elif(typeTire==2):
+        typeTireName="Camioneta"
+    elif(typeTire==3):
+        typeTireName="Camión"
+    quantity= turn.quantity
+    if(turn.rotation):
+        rotation="yes"
+    else:
+        rotation=""
+    quantityRotate= turn.quantityRotate
+    duration= turn.duration
+    dateF= turn.date.isoformat()
+    hour= turn.hour.isoformat('minutes')
+    bill= turn.bill
+    idCustomer= turn.idCustomer
+    nameCustomer= turn.nameCustomer
+    telCustomer= turn.telCustomer
+    comment=turn.comment
+    #limit for the date input
+    if(date.today().weekday==6):
+        maxDate=(date.today()+timedelta(days=7)).isoformat()
+    else:
+        maxDate=(date.today()+timedelta(days=7)).isoformat()
+
+    return render(request,template_name="1-modify_turn.html",
+        context={
+        'idTurn':idTurn,
+        'cvsName':cvsName,
+        'typeTire':typeTire,
+        'typeTireName':typeTireName,
+        'quantity':quantity,
+        'rotation':rotation,
+        'quantityRotate':quantityRotate,
+        'duration':duration,
+        'date':dateF,
+        'hour':hour,
+        'bill':bill,
+        'idCustomer':idCustomer,
+        'nameCustomer':nameCustomer,
+        'telCustomer':telCustomer,
+        'comment':comment,
+        'maxDate':maxDate,
+        'role':getRole(request)})
+
+def confirm_modify(request):
+    warningPage=redirectInvalidPage(request,[1])
+    if(warningPage):
+        return redirect(warningPage)
+    
+    _cvs= request.POST.get('cvsName')
+    _typeTire= int(request.POST.get('typeTire'))
+    _quantity= int(request.POST.get('quantity'))
+    _rotation= request.POST.get('rotation')
+    if(_rotation):
+        _quantityRotate= int(request.POST.get('quantityRotate'))
+        _rotation=True
+        flag6=valQuantityRotate(request,_quantityRotate,_quantity)
+    else:
+        _quantityRotate=0
+        _rotation=False
+        flag6=False
+    _duration= int(request.POST.get('duration'))
+    _date= date.fromisoformat(request.POST.get('date'))
+    _hour= time.fromisoformat(request.POST.get('hour'))
+    _bill= int(request.POST.get('bill'))
+    _idCustomer= int(request.POST.get('idCustomer'))
+    _nameCustomer= request.POST.get('nameCustomer')
+    _telCustomer= request.POST.get('telCustomer')
+
+    flag1=valBill(request,_bill)
+    flag3=valDuration(request,_duration)
+    modTurn=Turn.objects.get(id=int(request.POST.get('idTurn')))
+    flag2=valDateHour(request,_cvs,_date,_hour,_duration,0,modTurn.hour)
+    flag4=valId(request,_idCustomer)
+    flag5=valQuantity(request,_quantity)
+    
+    print(flag1)
+    print(flag3)
+    print(flag2)
+    print(flag4)
+    print(flag5)
+    print(flag6)
+    if(flag1 or flag2 or flag3 or flag4 or flag5 or flag6):
+        return redirect('modify_schedules')
+    else:
+        modTurn.typeTire=_typeTire
+        modTurn.quantity=_quantity
+        modTurn.rotation=_rotation
+        modTurn.quantityRotate=_quantityRotate
+        modTurn.duration=_duration
+        modTurn.date=_date
+        modTurn.hour=_hour
+        modTurn.bill=_bill
+        modTurn.idCustomer=_idCustomer
+        modTurn.nameCustomer=_nameCustomer
+        modTurn.telCustomer=_telCustomer
+        modTurn.modifiedBy=Profile.objects.get(user=request.user)
+        modTurn.dateModified=datetime.now()
+        modTurn.comment=request.POST.get('comment')
+
+        modTurn.save()
+        messages.success(request,"Se actualizó correctamente el turno en CVS: "+_cvs+" para el día "+_date.strftime("%d/%m/%Y")+" a las "+_hour.strftime("%I:%M %p"))
+        return redirect('see_schedules')
+
+def delete_service(request):
+    warningPage=redirectInvalidPage(request,[1])
+    if(warningPage):
+        return redirect(warningPage)
+    
+    if(request.method=='POST'):
+        delTurn=Turn.objects.get(id=int(request.POST.get('idTurn')))
+        strTurn=str(delTurn)
+        delTurn.delete()
+        messages.success(request,"Se eliminó correctamente el turno "+strTurn)
+        return redirect('see_schedules')
+    else:
+        messages.error(request,"No puedes acceder a este apartado sin haber llenado la información inicial del servicio")
+        return redirect('modify_schedules')
 
 def validate_service_provided(request):
     return render(request,template_name="1-validate_service_provided.html")

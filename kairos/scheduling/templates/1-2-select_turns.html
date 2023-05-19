@@ -3,7 +3,7 @@
 
 {% block styles %}
 <link rel="stylesheet" href="{% static 'schedules.css'%}">
-<link rel="stylesheet" href="{% static 'asign_turns.css'%}">
+<link rel="stylesheet" href="{% static 'sel_mod_turn.css'%}">
 {% endblock %}
 
 {% block title %}
@@ -54,43 +54,47 @@
                 <div class="card" >
                     <div class="card-body">
                         <h5 class="card-title">Horarios recomendados</h5>
-                        <h6 class="card-subtitle mb-2 text-body-secondary">Recuerde que los horarios presentados se tienen en cuenta de la siguiente manera: <br> duración + 5 minutos de descanso</h6>
+                        <p class="card-text" style="background-color: #E9862F; color: white; text-shadow: 0 0 2px black ; border-radius: 5px; padding: 5px;">El tiempo calculado fue de {{duration}} minutos</p>
+                        <h6 class="card-subtitle mb-2 text-body-secondary">Recuerde que el tiempo calculado ya incluye los 5 minutos de descanso del operario</h6>
                         <!-- content space for the recommendations -->
-                        <!-- falta el for -->
-                        <p class="card-text">Some quick</p>
+                        <ul>
+                            {% for reco in recommendations %}
+                            <li>{{reco}}</li>
+                            {% endfor %}
+                        </ul>
                     </div>
                 </div>
                 <div class="form-floating">
-                    <input class="form-control" type="date" name="date" id="date" required>
+                    <input class="form-control" type="date" name="date" id="date" min="{{minDate}}" max="{{maxDate}}" required> <!--format yyyy-mm-dd-->
                     <label for="date">Fecha</label>
                 </div>
                 <div class="form-floating">
-                    <input class="form-control" type="time" name="hour" id="hour" required>
+                    <input class="form-control" type="time" name="hour" id="hour" min="07:45" max="{{maxTime}}" required>
                     <label for="hour">Hora</label>
                 </div>
                 <h2>Información de la venta</h2>
                 <div class="form-floating">
-                    <input class="form-control" type="number" name="bill" id="bill" required>
+                    <input class="form-control" type="number" name="bill" id="bill" min="0" step="1" required>
                     <label for="bill">Número factura</label>
                 </div>
                 <div class="form-floating">
-                    <input class="form-control" type="number" name="idCustomer" id="idCustomer" required>
+                    <input class="form-control" type="number" name="idCustomer" id="idCustomer" min="0" step="1" required>
                     <label for="idCustomer">Cédula cliente</label>
                 </div>
                 <div class="form-floating">
-                    <input class="form-control" type="text" name="nameCustomer" id="nameCustomer" required>
+                    <input class="form-control" type="text" name="nameCustomer" id="nameCustomer" maxlength="50" required>
                     <label for="nameCustomer">Nombre cliente</label>
                 </div>
                 <div class="form-floating">
-                    <input class="form-control" type="text" name="telCustomer" id="telCustomer" required>
+                    <input class="form-control" type="text" name="telCustomer" id="telCustomer" maxlength="15" required>
                     <label for="telCustomer">Teléfono de contacto</label>
                 </div>
-                <!-- start confirm modal -->
-                    <!-- Button trigger modal -->
-                    <button type="button" class="mt-2 btn btn-secondary btn-outline-light position-absolute end-0 " data-bs-toggle="modal" data-bs-target="#staticBackdrop">
-                        Asignar turno
-                    </button>
-                    
+                <div style="display: flex; flex-direction: row-reverse; justify-content: space-between; flex-wrap: wrap;">
+                    <!-- start confirm modal -->
+                        <!-- Button trigger modal -->
+                        <button type="button" class=" btn btn-secondary btn-outline-light " data-bs-toggle="modal" data-bs-target="#staticBackdrop">Asignar</button>
+
+
                     <!-- Modal -->
                     <div class="modal fade" id="staticBackdrop" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="staticBackdropLabel" aria-hidden="true">
                         <div class="modal-dialog modal-dialog-centered">
@@ -99,7 +103,8 @@
                                 <h1 class="modal-title fs-5" id="staticBackdropLabel">Confirmación del turno</h1>
                                 </div>
                                 <div class="modal-body">
-                                <p>¿Está seguro que desea confirmar el turno?</p>
+                                <p style="font-weight: bolder;">¿Está seguro que desea confirmar el turno?</p>
+                                <p>Si el formulario no permite enviarlo, verifique que todos los campos se hallan llenado correctamente</p>
                                 </div>
                                 <div class="modal-footer">
                                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
@@ -108,8 +113,9 @@
                             </div>
                         </div>
                     </div>
+                
                 <!-- end confirm modal -->
-            </form><br>
+            </form>
             <form action="{% url 'time_turns' %}" method="post">
                 {%csrf_token%}
                 <!-- info to keep -->
@@ -118,8 +124,9 @@
                 <input type="hidden" name="quantity" value="{{quantity}}">
                 <input type="hidden" name="rotation" value="{{rotation}}">
                 <input type="hidden" name="quantityRotate" value="{{quantityRotate}}">
-                <button type="submit" class="mt-2 btn btn-secondary btn-outline-light position-absolute end-0 ">Volver</button>
+                <button type="submit" class="btn btn-secondary btn-outline-light">Volver</button>
             </form>
+                </div><!--div to flex the buttons-->
         </div>
     </div>
 {% endblock %}

@@ -3,7 +3,8 @@
 
 {% block styles %}
 <link rel="stylesheet" href="{% static 'schedules.css'%}">
-<link rel="stylesheet" href="{% static 'asign_turns.css'%}">
+<link rel="stylesheet" href="{% static 'sel_mod_turn.css'%}">
+<script src="{% static 'hide.js'%}"></script>
 {% endblock %}
 
 {% block title %}
@@ -40,11 +41,11 @@
         </div>
         <div class="form-displayer">
             <!-- section to select the cvs -->
-            <form style="margin: 2em;" action="" method="post">
+            <form style="margin: 2em;" action="{% url 'asign_turns' %}" method="post">
                 {%csrf_token%}
                 <h2>Selección de CVS</h2>
                 <div class="form-floating">
-                    <select class="form-select" id="sc-select" name="sc-select" aria-label="select cvs">
+                    <select class="form-select" id="sc-select" name="cvsName" aria-label="select cvs">
                         <option selected>{{cvsName}}</option><!--for this item we cannot put accents - or change BBDD-->
                         {% for cvs in listCVSs %}
                         <option value="{{cvs}}">{{cvs}}</option>
@@ -52,20 +53,20 @@
                     </select>
                     <label for="sc-select">Visualizando horario de:</label>
                 </div>
-                <button type="submit" class="ms-2 mt-2 btn btn-secondary btn-outline-light ">Ver</button>
+                <button type="submit" class="btn btn-secondary btn-outline-light ">Ver</button>
             </form>
             {% if cvsName %} 
             <hr>
                 <!-- section to select the service -->
             <form style="margin: 2em;" action="{% url 'time_turns' %}" method="post">
                 {%csrf_token%}
-                <!-- have to send the cvs -->
+                <!-- info to keep -->
                 <input type="hidden" name="cvsName" value="{{cvsName}}">
+                <!-- service information -->
                 <h2>Datos del servicio</h2>
                 <div class="form-floating">
                     <select class="form-select" id="typeTire" name="typeTire" aria-label="select type tire" required>
                         <option selected></option>
-                        <!-- posible optimización para nombres... requiere más procesamiento -->
                         <option value="1">Automóvil</option>
                         <option value="2">Camioneta</option>
                         <option value="3">Camión</option>
@@ -73,30 +74,20 @@
                     <label for="typeTire">Tipo de llanta</label>
                 </div>
                 <div class="form-floating">
-                    <input class="form-control" type="number" name="quantity" id="quantity" required>
+                    <input class="form-control" type="number" name="quantity" id="quantity" min="1" step="1" required>
                     <label for="quantity">Cantidad llantas</label>
                 </div>                   
                 <div>
-                    <input class="form-check-input" type="checkbox" name="rotation" value="on" id="rotation" onclick="DoCheckUncheckDisplay(this,'quantityRotate','label-quantityRotate')">
+                    <input class="form-check-input" type="checkbox" name="rotation" value="on" id="rotation" onclick="hideShow(this,'quantityRotate','label-quantityRotate')">
                     <label class="form-check-label" for="rotation">Rotación</label>
                 </div>
                 <div class="form-floating" >
-                    <input class="form-control" type="number" name="quantityRotate" id="quantityRotate" style="display: none;" value="0" required>
+                    <input class="form-control" type="number" name="quantityRotate" id="quantityRotate" style="display: none;" value="1" min="0" step="1" required>
                     <label for="quantityRotate" id="label-quantityRotate" style="display: none;">Cantidad llantas</label>
                 </div>
-                <script>
-                    function DoCheckUncheckDisplay(d,dchecked1,dchecked2){
-                        if( d.checked == true ){
-                            document.getElementById(dchecked1).style.display = "block";
-                            document.getElementById(dchecked2).style.display = "block";
-                        }
-                        else{
-                            document.getElementById(dchecked1).style.display = "none";
-                            document.getElementById(dchecked2).style.display = "none";
-                        }
-                    }
-                </script>
-                <button type="submit" class="mt-2 btn btn-secondary btn-outline-light position-absolute end-0 ">Continuar</button>
+                <div style="display: flex; justify-content: end;">
+                    <button type="submit" class="btn btn-secondary btn-outline-light">Continuar</button>
+                </div>
             </form>
             {% endif %}
         </div>

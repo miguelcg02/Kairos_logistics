@@ -1,0 +1,85 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block styles %}
+<link rel="stylesheet" href="{% static 'schedules.css'%}">
+<link rel="stylesheet" href="{% static 'sel_mod_turn.css'%}">
+{% endblock %}
+
+{% block title %}
+    Modificar turnos
+{% endblock %}
+
+<!-- Selecting navbar -->
+{% block navbar %}
+    <!-- IF MANAGER -->
+    {% if role == 0 %}
+        {% include '0-manager/navbar-manager.html' %} 
+    {% endif %}
+    <!-- IF ADMIN -->
+    {% if role == 1 %}
+        {% include '1-admin\navbar-admin.html' %} 
+    {% endif %}
+    <!-- IF ADVISER -->
+    {% if role == 2 %}
+        {% include '2-adviser\navbar-adviser.html' %} 
+    {% endif %}
+    <!-- IF OPERATOR -->
+    {% if role == 3 %}
+        {% include '3-operator\navbar-operator.html' %} 
+    {% endif %}
+{% endblock %}
+
+{% block content %}
+    <div class="full-container">
+        <div class="sc-displayer">
+            <h2>Visualización del horario</h2> 
+            {% include 'base_schedule.html' %}
+        </div>
+        <div class="form-displayer">
+            <!-- section By date and time -->
+            <h2>Búsqueda por fecha y hora</h2>
+            <form style="margin: 2em;" action="{% url 'modify_schedules' %}" method="post">
+                {%csrf_token%}
+                <h2>Selección de fecha</h2>
+                <div class="form-floating">
+                    <input class="form-control" type="date" name="date" id="date" value="{{date}}" max="{{maxDate}}" required>
+                    <label for="date">Fecha</label>
+                </div>
+                <div style="display: flex;justify-content: end;">
+                    <button type="submit" class="btn btn-secondary btn-outline-light ">Ver</button>
+                </div>
+            </form>
+            {% if date %} 
+            <hr>
+                <form style="margin: 2em;" action="{% url 'modify_turn' %}" method="post">
+                    {%csrf_token%}
+                    <div class="form-floating">
+                        <select class="form-select" id="turn" name="turn" aria-label="select turn" required>
+                            <option selected></option>
+                            {% for turn in listTurns %}
+                            <option value="{{turn.0}}">{{turn.1}}</option><!--Value=Turn.id-->
+                            {% endfor %}
+                        </select>
+                        <label for="turn">Revisar el turno de:</label>
+                    </div>
+                    <div style="display: flex;justify-content: end;">
+                        <button type="submit" class="btn btn-secondary btn-outline-light">Modificar</button>
+                    </div>
+                </form>
+            {% endif %}
+            <br><br><hr>
+            <h2>Búsqueda por factura</h2>
+            <form style="margin: 2em;" action="{% url 'modify_turn' %}" method="post">
+                {%csrf_token%}
+                <div class="form-floating">
+                    <input class="form-control" id="bill" value="bill" type="number" name="bill" min="0" step="1" required>
+                    <label for="bill">Factura del servicio:</label>
+                </div>
+                <div style="display: flex;justify-content: end;">
+                    <button type="submit" class="btn btn-secondary btn-outline-light">Modificar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+{% endblock %}

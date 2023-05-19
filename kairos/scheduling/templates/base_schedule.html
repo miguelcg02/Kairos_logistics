@@ -28,9 +28,9 @@
 
                 {%if event.3 %}
                     <p>{{event.3}}</p>
-                    <a class="btn btn-secondary btn-outline-light btn-sm" href="#" data-bs-toggle="modal" data-bs-target="#mod">Ver turno</a>
+                    <a class="btn btn-secondary btn-outline-light btn-sm" href="#" data-bs-toggle="modal" data-bs-target="#{{event.4.0}}">Ver turno</a>
 
-                    <div class="modal fade" id="mod" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+                    <div class="modal fade" id="{{event.4.0}}" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
                         <div class="modal-dialog modal-dialog-centered modal-lg">
                             <div class="modal-content">
                                 <div class="modal-header">
@@ -40,32 +40,32 @@
                                 <div class="modal-body">
                                     <h2 class="text-center mt-1em">Información</h2>
                                     <div class="info">
-                                        <p class="text-end fw-bold">Fecha:</p> <p class=" border-bottom border-dark">{{event.4.0}}</p>
-                                        <p class="text-end fw-bold">CVS:</p> <p class=" border-bottom border-dark">{{event.4.1}}</p>
-                                        <p class="text-end fw-bold">Hora:</p> <p class=" border-bottom border-dark">{{event.4.2}}</p>
-                                        <p class="text-end fw-bold">Duración</p> <p class=" border-bottom border-dark">{{event.4.3}}</p>
-                                        <p class="text-end fw-bold text-nowrap">Tipo llanta:</p> <p class=" border-bottom border-dark">{{event.4.4}}</p>
-                                        <p class="text-end fw-bold">Cantidad:</p> <p class=" border-bottom border-dark">{{event.4.5}}</p>
-                                        <p class="text-end fw-bold">Rotación:</p> <p class=" border-bottom border-dark">{{event.4.6}}</p>
-                                        <p class="text-end fw-bold">Cantidad:</p> <p class=" border-bottom border-dark">{{event.4.7}}</p>
+                                        <p class="text-end fw-bold">Fecha:</p> <p class=" border-bottom border-dark">{{event.4.1}}</p>
+                                        <p class="text-end fw-bold">CVS:</p> <p class=" border-bottom border-dark">{{event.4.2}}</p>
+                                        <p class="text-end fw-bold">Hora:</p> <p class=" border-bottom border-dark">{{event.4.3}}</p>
+                                        <p class="text-end fw-bold">Duración</p> <p class=" border-bottom border-dark">{{event.4.4}}</p>
+                                        <p class="text-end fw-bold text-nowrap">Tipo llanta:</p> <p class=" border-bottom border-dark">{{event.4.5}}</p>
+                                        <p class="text-end fw-bold">Cantidad:</p> <p class=" border-bottom border-dark">{{event.4.6}}</p>
+                                        <p class="text-end fw-bold">Rotación:</p> <p class=" border-bottom border-dark">{{event.4.7}}</p>
+                                        <p class="text-end fw-bold">Cantidad:</p> <p class=" border-bottom border-dark">{{event.4.8}}</p>
                                     </div>
                                     {% if role != 3 %}
                                         <hr>
                                         <h2 class="text-center mt-1em">Venta</h2>
                                         <div class="info">
-                                            <p class="text-end fw-bold">Factura:</p> <p class=" border-bottom border-dark">{{event.4.8}}</p>
-                                            <p class="text-end fw-bold text-nowrap">Id Cliente:</p> <p class=" border-bottom border-dark">{{event.4.9}}</p>
-                                            <p class="text-end fw-bold text-nowrap">Nombre Cliente:</p> <p class=" border-bottom border-dark">{{event.4.10}}</p>
-                                            <p class="text-end fw-bold">Teléfono:</p> <p class=" border-bottom border-dark">{{event.4.11}}</p>
+                                            <p class="text-end fw-bold">Factura:</p> <p class=" border-bottom border-dark">{{event.4.9}}</p>
+                                            <p class="text-end fw-bold text-nowrap">Id Cliente:</p> <p class=" border-bottom border-dark">{{event.4.10}}</p>
+                                            <p class="text-end fw-bold text-nowrap">Nombre Cliente:</p> <p class=" border-bottom border-dark">{{event.4.11}}</p>
+                                            <p class="text-end fw-bold">Teléfono:</p> <p class=" border-bottom border-dark">{{event.4.12}}</p>
                                         </div>
                                         {% if role == 1 %}
                                             <hr>
                                             <h2 class="text-center mt-1em">Agenda</h2>
                                             <div class="info">
-                                                <p class="text-end fw-bold text-nowrap">Agendado por:</p> <p class=" border-bottom border-dark">{{event.4.12}}</p>
-                                                <p class="text-end fw-bold">Fecha y Hora:</p> <p class=" border-bottom border-dark text-nowrap">{{event.4.13}}</p>
-                                                <p class="text-end fw-bold text-nowrap">Modificado por:</p> <p class=" border-bottom border-dark">{{event.4.14}}</p>
-                                                <p class="text-end fw-bold">Fecha y Hora:</p> <p class=" border-bottom border-dark text-nowrap">{{event.4.15}}</p>
+                                                <p class="text-end fw-bold text-nowrap">Agendado por:</p> <p class=" border-bottom border-dark">{{event.4.13}}</p>
+                                                <p class="text-end fw-bold">Fecha y Hora:</p> <p class=" border-bottom border-dark text-nowrap">{{event.4.14}}</p>
+                                                <p class="text-end fw-bold text-nowrap">Modificado por:</p> <p class=" border-bottom border-dark">{{event.4.15}}</p>
+                                                <p class="text-end fw-bold">Fecha y Hora:</p> <p class=" border-bottom border-dark text-nowrap">{{event.4.16}}</p>
                                             </div>
                                         {% endif %}
                                     {% endif %}
