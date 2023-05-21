@@ -28,10 +28,7 @@ urlpatterns = [
     path('delete_service/',views.delete_service,name='delete_service'),
     path('validate_service_provided/',views.validate_service_provided,name='validate_service_provided'),
     path('excel/', views.createReport, name='excel'),
-<<<<<<< HEAD
-    path('preview/', views.preview, name='preview'),
-=======
     path('logout/', logout_then_login, name='logout'),
->>>>>>> main
+    path('preview/', views.preview, name='preview'),
 
 ]

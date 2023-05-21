@@ -334,7 +334,7 @@ def createReport(request):
     response["Content-Disposition"] = content
     workBook.save(response)
     return response
-   
+
 def reports(request):    
     cvsList = CVS.objects.all()
     return render(request,template_name="0-reports.html", context={'role':getRole(request), 'cvsList':cvsList})
