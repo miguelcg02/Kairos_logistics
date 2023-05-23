@@ -29,6 +29,5 @@ urlpatterns = [
     path('validate_service_provided/',views.validate_service_provided,name='validate_service_provided'),
     path('excel/', views.createReport, name='excel'),
     path('logout/', logout_then_login, name='logout'),
-    path('preview/', views.preview, name='preview'),
 
 ]

@@ -112,7 +112,25 @@ def delete_user(request):
     return render(request,template_name="0-1-delete_user.html",context=context)
         
 def createReport(request):
-    query = Turn.objects.all()
+    warningPage=redirectInvalidPage(request,[0])
+    if(warningPage):
+        return redirect(warningPage)
+    
+    if request.method == 'POST':
+        cvsList = request.POST.get('cvsList')
+        cvsList = cvsList[1:-1]
+        cvsList = cvsList.replace("'","")
+        cvsList = cvsList.split(", ")
+        initialDate = date.fromisoformat(request.POST.get('initialDate'))
+        finalDate = date.fromisoformat(request.POST.get('finalDate'))
+        
+        query = Turn.objects.filter(cvs__name__in=cvsList).filter(date__gte=initialDate).filter(date__lte=finalDate).order_by('cvs','date','hour')
+        
+    else:
+        messages.error(request,"No puedes acceder a este apartado sin haber llenado la información del reporte")
+        return redirect('reports')   
+
+
     workBook = Workbook()
     workSheet = workBook.active
     workSheet.title = 'Hoja1' #Change name of first sheet
@@ -238,11 +256,13 @@ def createReport(request):
         #Fill in the data of the table
         workSheet.cell(row=rowController, column=2).alignment = Alignment(horizontal="center", vertical="center")
         workSheet.cell(row=rowController, column=2).font = Font(name='Arial', size=10)
-        workSheet.cell(row=rowController, column=2).value = q.date.isoformat()
+        #workSheet.cell(row=rowController, column=2).value = q.date.isoformat()
+        workSheet.cell(row=rowController, column=2).value = q.date
 
         workSheet.cell(row=rowController, column=3).alignment = Alignment(horizontal="center", vertical="center")
         workSheet.cell(row=rowController, column=3).font = Font(name='Arial', size=10)
-        workSheet.cell(row=rowController, column=3).value = q.hour.isoformat('minutes')
+        #workSheet.cell(row=rowController, column=3).value = q.hour.isoformat('minutes')
+        workSheet.cell(row=rowController, column=3).value = q.hour
 
         workSheet.cell(row=rowController, column=4).alignment = Alignment(horizontal="center", vertical="center")
         workSheet.cell(row=rowController, column=4).font = Font(name='Arial', size=10)
@@ -270,7 +290,6 @@ def createReport(request):
             workSheet.cell(row=rowController, column=9).value = "Si"
         else:
             workSheet.cell(row=rowController, column=9).value = "No"
-        
 
         workSheet.cell(row=rowController, column=10).alignment = Alignment(horizontal="center", vertical="center")
         workSheet.cell(row=rowController, column=10).font = Font(name='Arial', size=10)
@@ -310,7 +329,8 @@ def createReport(request):
 
         workSheet.cell(row=rowController, column=17).alignment = Alignment(horizontal="center", vertical="center")
         workSheet.cell(row=rowController, column=17).font = Font(name='Arial', size=10)
-        workSheet.cell(row=rowController, column=17).value = str(q.dateScheduled.date().isoformat()) + ", " + str(q.dateScheduled.time().isoformat('minutes'))
+        #workSheet.cell(row=rowController, column=17).value = str(q.dateScheduled.date().isoformat()) + ", " + str(q.dateScheduled.time().isoformat('minutes'))
+        workSheet.cell(row=rowController, column=17).value = str(q.dateScheduled.date()) + ", " + str(q.dateScheduled.time().isoformat('minutes'))
 
         workSheet.cell(row=rowController, column=18).alignment = Alignment(horizontal="center", vertical="center")
         workSheet.cell(row=rowController, column=18).font = Font(name='Arial', size=10)
@@ -324,7 +344,8 @@ def createReport(request):
         if(q.dateModified is None):
             workSheet.cell(row=rowController, column=19).value = ""
         else:
-            workSheet.cell(row=rowController, column=19).value = str(q.dateModified.date().isoformat()) + ", " + str(q.dateModified.time().isoformat('minutes'))
+            #workSheet.cell(row=rowController, column=19).value = str(q.dateModified.date().isoformat()) + ", " + str(q.dateModified.time().isoformat('minutes'))
+            workSheet.cell(row=rowController, column=19).value = str(q.dateModified.date()) + ", " + str(q.dateModified.time().isoformat('minutes'))
 
         rowController += 1
 
@@ -336,6 +357,10 @@ def createReport(request):
     return response
 
 def reports(request):    
+    warningPage=redirectInvalidPage(request,[0])
+    if(warningPage):
+        return redirect(warningPage)
+
     allCvs = CVS.objects.all()
 
     if request.method == 'POST':
@@ -351,13 +376,11 @@ def reports(request):
         preview = True
         query = Turn.objects.filter(cvs__name__in=cvsList).filter(date__gte=initialDate).filter(date__lte=finalDate).order_by('cvs','date','hour')
 
-        return render(request,template_name="0-reports.html", context={'role':getRole(request), 'allCvs':allCvs, 'preview':preview, 'cvsList':cvsList, 'initialDate':initialDate, 'finalDate':finalDate,'query':query})
+        return render(request,template_name="0-reports.html", context={'role':getRole(request), 'allCvs':allCvs, 'preview':preview, 'cvsList':cvsList, 'initialDate':initialDate.isoformat(), 'finalDate':finalDate.isoformat(),'query':query})
     
     
     return render(request,template_name="0-reports.html", context={'role':getRole(request), 'allCvs':allCvs})
 
-def preview(request):
-    return render(request, template_name="0-previewExcel.html", context={'role':getRole(request)})
 
 #---------- auxiliar methods for see_schedules-------------------#
 def delta2time(delta):
