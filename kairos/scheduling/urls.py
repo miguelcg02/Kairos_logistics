@@ -14,6 +14,7 @@ urlpatterns = [
 
     # FUNCIONALITIES
     path('reports/',views.reports,name='reports'),
+    path('excel/', views.createReport, name='excel'),
     path('block_schedule/',views.block_schedule,name='block_schedule'),
     path('create_user/',views.create_user,name='create_user'),
     path('delete_user/',views.delete_user,name='delete_user'),
@@ -27,7 +28,8 @@ urlpatterns = [
     path('confirm_modify/',views.confirm_modify,name='confirm_modify'),
     path('delete_service/',views.delete_service,name='delete_service'),
     path('validate_service_provided/',views.validate_service_provided,name='validate_service_provided'),
-    path('excel/', views.createReport, name='excel'),
+    path('validate_turn/', views.validate_turn, name='validate_turn'),
+    path('confirm_validation/',views.confirm_validation,name='confirm_validation'),
     path('logout/', logout_then_login, name='logout'),
 
 ]

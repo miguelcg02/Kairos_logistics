@@ -123,7 +123,7 @@ def createReport(request):
         cvsList = cvsList.split(", ")
         initialDate = date.fromisoformat(request.POST.get('initialDate'))
         finalDate = date.fromisoformat(request.POST.get('finalDate'))
-        
+
         query = Turn.objects.filter(cvs__name__in=cvsList).filter(date__gte=initialDate).filter(date__lte=finalDate).order_by('cvs','date','hour')
         
     else:
@@ -380,7 +380,6 @@ def reports(request):
     
     
     return render(request,template_name="0-reports.html", context={'role':getRole(request), 'allCvs':allCvs})
-
 
 #---------- auxiliar methods for see_schedules-------------------#
 def delta2time(delta):
@@ -1167,4 +1166,137 @@ def delete_service(request):
         return redirect('modify_schedules')
 
 def validate_service_provided(request):
-    return render(request,template_name="1-validate_service_provided.html")
+    warningPage=redirectInvalidPage(request,[1])
+    if(warningPage):
+        return redirect(warningPage)
+    
+    #we take the name of the admin -> cvsName
+    cvsName=request.user.first_name
+    #events' array (freetime and services) for the context
+    sc_days=toSee_schedules(cvsName)
+    #limit for the date input
+    if(date.today().weekday==6):
+        maxDate=(date.today()+timedelta(days=8)).isoformat()
+    else:
+        maxDate=(date.today()+timedelta(days=7)).isoformat()
+
+    if(request.method=='POST'):
+        dateToSearch=date.fromisoformat(request.POST.get('date'))
+        print(dateToSearch)
+        turns=Turn.objects.filter(date=dateToSearch).filter(cvs__name=cvsName).order_by('hour')
+        listTurns=[]
+        for turn in turns:
+            turnL=[]
+            turnL.append(turn.id)
+            beg=timedelta(hours=turn.hour.hour,minutes=turn.hour.minute)
+            end=beg+timedelta(minutes=turn.duration)
+            turnL.append(delta2time(beg)+" - "+delta2time(end))
+            listTurns.append(turnL)
+        
+        if(listTurns):
+            return render(request,template_name="1-validate_service_provided.html",context={'cvsName':cvsName,'sc_days':sc_days,'maxDate':maxDate,'listTurns':listTurns,'date':dateToSearch.isoformat(),'role':getRole(request)})
+        else:
+            messages.warning(request,"El día accedido no tiene turnos asignados")
+    
+    return render(request,template_name="1-validate_service_provided.html", context={'role':getRole(request),'cvsName':cvsName,'sc_days':sc_days,'maxDate':maxDate})
+
+def validate_turn(request):
+    warningPage=redirectInvalidPage(request,[1])
+    if(warningPage):
+        return redirect(warningPage)
+
+    if(request.POST.get('turn')):
+        turn=Turn.objects.get(id=int(request.POST.get('turn')))
+    else:
+        cvsName=request.user.first_name
+        #get the turn of the cvs
+        turn=Turn.objects.filter(cvs__name=cvsName).filter(bill=int(request.POST.get('bill')))
+
+        if(not len(turn)):
+            messages.warning(request,"No se ha encontrado un servicio con factura: "+request.POST.get('bill')+" en este CVS")
+            return redirect('validate_service_provided')
+        
+        #get the turn from the queryset
+        turn=turn.first()
+    
+    idTurn= turn.id
+    cvsName= turn.cvs.name
+    typeTire= turn.typeTire
+    if(typeTire==1):
+        typeTireName="Automóvil"
+    elif(typeTire==2):
+        typeTireName="Camioneta"
+    elif(typeTire==3):
+        typeTireName="Camión"
+    quantity= turn.quantity
+    if(turn.rotation):
+        rotation="yes"
+    else:
+        rotation=""
+    quantityRotate= turn.quantityRotate
+    duration= turn.duration
+    dateF= turn.date.isoformat()
+    hour= turn.hour.isoformat('minutes')
+    bill= turn.bill
+    idCustomer= turn.idCustomer
+    nameCustomer= turn.nameCustomer
+    telCustomer= turn.telCustomer
+    comment=turn.comment
+    done = turn.done
+    #limit for the date input
+    if(date.today().weekday==6):
+        maxDate=(date.today()+timedelta(days=7)).isoformat()
+    else:
+        maxDate=(date.today()+timedelta(days=7)).isoformat()
+
+    return render(request,template_name="1-validate_turn.html",
+        context={
+        'idTurn':idTurn,
+        'cvsName':cvsName,
+        'typeTire':typeTire,
+        'typeTireName':typeTireName,
+        'quantity':quantity,
+        'rotation':rotation,
+        'quantityRotate':quantityRotate,
+        'duration':duration,
+        'date':dateF,
+        'hour':hour,
+        'bill':bill,
+        'idCustomer':idCustomer,
+        'nameCustomer':nameCustomer,
+        'telCustomer':telCustomer,
+        'comment':comment,
+        'done':done,
+        'maxDate':maxDate,
+        'role':getRole(request)})
+
+def confirm_validation(request):
+    warningPage=redirectInvalidPage(request,[1])
+    if(warningPage):
+        return redirect(warningPage)
+    
+    _cvs= request.POST.get('cvsName')
+    _comment= request.POST.get('comment')
+    if(_comment):
+        _comment=_comment
+    else:
+        _comment=""
+    _newComment= request.POST.get('newComment')
+    _done= request.POST.get('done')
+    if(_done):
+        _done=True
+    else:
+        _done=False
+      
+    _date= date.fromisoformat(request.POST.get('date'))
+    _hour= time.fromisoformat(request.POST.get('hour'))
+
+    modTurn=Turn.objects.get(id=int(request.POST.get('idTurn')))
+    modTurn.done=_done
+    modTurn.modifiedBy=Profile.objects.get(user=request.user)
+    modTurn.dateModified=datetime.now()
+    modTurn.comment=_comment + " - " + _newComment
+
+    modTurn.save()
+    messages.success(request,"Se actualizó correctamente el turno en CVS: "+_cvs+" para el día "+_date.strftime("%d/%m/%Y")+" a las "+_hour.strftime("%I:%M %p"))
+    return redirect('see_schedules')
