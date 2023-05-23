@@ -336,8 +336,25 @@ def createReport(request):
     return response
 
 def reports(request):    
-    cvsList = CVS.objects.all()
-    return render(request,template_name="0-reports.html", context={'role':getRole(request), 'cvsList':cvsList})
+    allCvs = CVS.objects.all()
+
+    if request.method == 'POST':
+        cvsList = request.POST.getlist('cvsOptions')
+        initialDate = date.fromisoformat(request.POST.get('dateS'))
+        finalDate = date.fromisoformat(request.POST.get('dateE'))
+
+        if not(initialDate and finalDate and cvsList):
+            messages.warning(request,"Recuerda que debes llenar todos los campos del formulario para el reporte")
+            redirect('reports')
+            preview = False
+
+        preview = True
+        query = Turn.objects.filter(cvs__name__in=cvsList).filter(date__gte=initialDate).filter(date__lte=finalDate).order_by('cvs','date','hour')
+
+        return render(request,template_name="0-reports.html", context={'role':getRole(request), 'allCvs':allCvs, 'preview':preview, 'cvsList':cvsList, 'initialDate':initialDate, 'finalDate':finalDate,'query':query})
+    
+    
+    return render(request,template_name="0-reports.html", context={'role':getRole(request), 'allCvs':allCvs})
 
 def preview(request):
     return render(request, template_name="0-previewExcel.html", context={'role':getRole(request)})

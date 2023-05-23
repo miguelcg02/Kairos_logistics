@@ -33,3 +33,41 @@
     background-color: rgb(199, 199, 199);
     text-align: right;
 }
+
+button{
+    width: 135px;
+    margin-top: 0.5em;
+}
+
+.container-fluid{
+    max-width: 80%;
+    overflow-x: scroll;
+    display: flex;
+    align-items: center;
+    
+}
+
+table{
+    table-layout: fixed;
+    text-align: center;
+    background-color: #c1c1c1;
+}
+
+thead{
+    background-color: #383d3b;
+    color: white;
+}
+
+th, td {
+    width: 150px;
+    word-wrap: break-word;
+}
+
+.container-fluid::-webkit-scrollbar{
+    width: 1em;
+    background-color: #c1c1c1;
+}
+.container-fluid::-webkit-scrollbar-thumb{
+    border-radius: 1em;
+    background-color: #9b9b9b;
+}

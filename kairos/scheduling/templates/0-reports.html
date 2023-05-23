@@ -2,7 +2,7 @@
 {% load static %}
 
 {% block styles %}
-    <link rel="stylesheet" href="{% static '0-reports.css'%}">
+    <link rel="stylesheet" href="{% static '0-report.css'%}">
 {% endblock %}
 
 {% block title %}
@@ -48,60 +48,103 @@
     <div class="container">
         <div class="panel panel-primary panel-dark">
             <div class="panel-heading">FILTROS</div>
-            <div class="panel-body">
-                <div class="row">
-                    <form method="post">
+            <form method="post">
+                {%csrf_token%}
+                <div class="panel-body">
+                    <div class="row">
                         <div class="form-group">
                             <label class="control-label fw-bold">CVS</label>
-                            <select id="cvsOptions" name="cvsOptions" class="form-control selectpicker" multiple data-live-search="true" placeholder="Seleccione los CVS...">
-                                {% for cvs in cvsList %}
-                                    <option value="cvsChosen">{{ cvs.name }}</option>
+                            <select id="cvsOptions" name="cvsOptions" class="form-control selectpicker" multiple data-live-search="true" placeholder="Seleccione los CVS..." required>
+                                {% for cvs in allCvs %}
+                                    <option value="{{cvs.name}}">{{ cvs.name }}</option>
                                 {% endfor %} 
                             </select>
                         </div>
-                    </form>
-                </div>
+                        
+                    </div>
 
-                <div class="row">
-                    <div class="col-md-6 col-sm-6 col-xs-12">
-                        <form method="post">
+                    <div class="row">
+                        <div class="col-md-6 col-sm-6 col-xs-12">
+                        
                             <div class="form-group">
                               <label class="control-label fw-bold" for="date">Fecha inicial</label>
-                              <input class="form-control" id="startDate" name="date" placeholder="DD/MM/AAAA" type="text"/>
+                              <input class="form-control" id="startDate" name="dateS" type="date" required/>
                             </div>
-                        </form>
-                    </div>
-                    <div class="col-md-6 col-sm-6 col-xs-12">
-                        <form method="post">
+                        
+                        </div>
+                        <div class="col-md-6 col-sm-6 col-xs-12">
+                        
                             <div class="form-group">
                                 <label class="control-label fw-bold" for="date">Fecha final</label>
-                                <input class="form-control" id="endDate" name="date" placeholder="DD/MM/AAAA" type="text"/>
+                                <input class="form-control" id="endDate" name="dateE" type="date" required/>
                             </div>
-                        </form>
-                    </div>
-                </div>    
-            </div>
-            <div class="panel-footer">
-                <a class="btn btn-lg px-3 btn-outline-dark" role="button" type="submit" href="{% url 'excel' %}">Generar reporte</a>
-            </div>
+                        
+                        </div>
+                    </div> 
+                   
+                </div>
+                <div class="panel-footer">
+                    <button type="submit" class="btn btn-secondary btn-outline-light">Generar reporte</button>
+                </div>
+            </form>
         </div>
     </div>
 </div>
 
-<script>
-    $(document).ready(function(){
-      var date_input=$('input[name="date"]'); //our date input has the name "date"
-      var container=$('.bootstrap-iso form').length>0 ? $('.bootstrap-iso form').parent() : "body";
-      var options={
-        format: "dd/mm/yyyy",
-        language: "es",
-        orientation: "bottom-left",
-        todayHighlight: true,
-        autoclose: true,
-      };
-      date_input.datepicker(options);
-    })
-</script>
+{% if preview %}
+    <div class="container-fluid">
+        <table class="table table-bordered table-hover">
+            <thead>
+                <tr>
+                    <th scope="col">Fecha del servicio</th>
+                    <th scope="col">Hora del servicio</th>
+                    <th scope="col">CVS</th>
+                    <th scope="col">Número de factura</th>
+                    <th scope="col">Cédula del cliente</th>
+                    <th scope="col">Nombre del cliente</th>
+                    <th scope="col">Télefono del cliente</th>
+                    <th scope="col">Servicio prestado</th>
+                    <th scope="col">Comentarios del servicio</th>
+                    <th scope="col">Tipo de llanta</th>
+                    <th scope="col">Cantidad de llantas</th>
+                    <th scope="col">¿Hubo rotación?</th>
+                    <th scope="col">Cantidad de llantas rotadas</th>
+                    <th scope="col">Duración del servicio</th>
+                    <th scope="col">Agendado por</th>
+                    <th scope="col">Fecha agendamiento</th>
+                    <th scope="col">Modificado por</th>
+                    <th scope="col">Fecha de modificación</th>
+                </tr>
+            </thead>
+
+            <tbody>
+                {% for q in query %}
+                <tr>
+                    <td>{{q.date}}</td>
+                    <td>{{q.hour}}</td>
+                    <td>{{q.cvs.name}}</td>
+                    <td>{{q.bill}}</td>
+                    <td>{{q.idCustomer}}</td>
+                    <td>{{q.nameCustomer}}</td>
+                    <td>{{q.telCustomer}}</td>
+                    <td>{{q.done}}</td>
+                    <td>{{q.comment}}</td>
+                    <td>{{q.typeTire}}</td>
+                    <td>{{q.quantity}}</td>
+                    <td>{{q.rotation}}</td>
+                    <td>{{q.quantityRotate}}</td>
+                    <td>{{q.duration}}</td>
+                    <td>{{q.scheduledBy.user.username}}</td>
+                    <td>{{q.dateScheduled.date}}</td>
+                    <td>{{q.modifiedBy.user.username}}</td>
+                    <td>{{q.dateModified.date}}</td>
+
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>    
+    </div>
+{% endif %}
 
 <br>
 
