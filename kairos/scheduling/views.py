@@ -77,7 +77,43 @@ def home_operator(request):
     return render(request,template_name="3-operator/home-operator.html")
 
 def block_schedule(request):
-    return render(request,template_name="0-1-block_schedule.html")
+    warningPage=redirectInvalidPage(request,[0,1])
+    if(warningPage):
+        return redirect(warningPage)
+    
+    if(request.method=='POST'):
+        #get the selected name to show the preview
+        cvsName=request.POST.get('cvsName')
+        #events' array (freetime and services) for the context
+        sc_days=toSee_schedules(cvsName)
+        #cvs' names for the combo box already selected
+        listCVSs=listCVS(cvsName)
+
+        minDate=date.today().isoformat()
+
+        return render(request,template_name="0-1-block_schedule.html", context={'cvsName':cvsName,'sc_days':sc_days,'listCVSs':listCVSs,'minDate':minDate,'role':getRole(request)})
+    else:
+        #cvs' names for the combo box
+        listCVSs=listCVS('')
+    return render(request,template_name="0-1-block_schedule.html", context={'listCVSs':listCVSs,'role':getRole(request)})
+
+def block(request):
+    warningPage=redirectInvalidPage(request,[0,1])
+    if(warningPage):
+        return redirect(warningPage)
+    
+    if(request.method=='POST'):
+        startDate = request.POST.get('startDate')
+        startHour = request.POST.get('startHour')
+        finalDate = request.POST.get('finalDate')
+        finalHour = request.POST.get('finalHour')
+
+        print(startDate)
+        print(startHour)
+        print(finalDate)
+        print(finalHour)
+
+    return redirect('see_schedules')
 
 def create_user(request):
     form = CreateUserForm()

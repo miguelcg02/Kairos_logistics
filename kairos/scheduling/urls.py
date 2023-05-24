@@ -16,6 +16,7 @@ urlpatterns = [
     path('reports/',views.reports,name='reports'),
     path('excel/', views.createReport, name='excel'),
     path('block_schedule/',views.block_schedule,name='block_schedule'),
+    path('block/', views.block,name='block'),
     path('create_user/',views.create_user,name='create_user'),
     path('delete_user/',views.delete_user,name='delete_user'),
     path('see_schedules/',views.see_schedules,name='see_schedules'),
