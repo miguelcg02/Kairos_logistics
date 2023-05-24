@@ -103,15 +103,32 @@ def block(request):
         return redirect(warningPage)
     
     if(request.method=='POST'):
-        startDate = request.POST.get('startDate')
+        sc_days=toSee_schedules(request.POST.get('cvsName'))
+        startDate = date.fromisoformat(request.POST.get('startDate'))
         startHour = request.POST.get('startHour')
-        finalDate = request.POST.get('finalDate')
+        finalDate = date.fromisoformat(request.POST.get('finalDate'))
         finalHour = request.POST.get('finalHour')
 
-        print(startDate)
-        print(startHour)
-        print(finalDate)
-        print(finalHour)
+        
+        #if is only one day then is from the start hour to the final hour
+        if(startDate == finalDate):
+            #contDay=0
+            #start=timedelta(hours=datetime.strptime(startHour,'%I'), minutes=datetime.strptime(startHour,'%M'))
+            #every day starts at 07:45am
+            #end=timedelta(hours=datetime.strptime(finalHour,'%I'), minutes=datetime.strptime(finalHour,'%M'))
+            #newSC_event=["sc-event block",deltas2line(start,end)]
+            #sc_days[contDay].append(newSC_event)
+            return redirect()
+        #Check if is more than one day, if so from the first date we have to do a for, from the first hour until 18pm
+        #in the first day, then the other is from 7am to 18pm, then when we get to the last day we do it from 7am
+        #until the final hour.
+        else:
+            return redirect()
+
+        
+        #then we have to see what we are going to do with the turns assigned in this dates and hours
+
+        
 
     return redirect('see_schedules')
 
