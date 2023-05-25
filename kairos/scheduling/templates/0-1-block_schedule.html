@@ -7,11 +7,14 @@
 <!-- AQUI TOCA ESTABLECER IS SE VA A USAR EL NAVBAR DE MANAGER O DE ADMIN, ASÍ QUE OJO -->
 
 {% block navbar %}
-    <!-- IF ES MANEGER -->
-    {% include '0-manager/navbar-manager.html' %} 
-
-    <!-- ELSE IF ES ADMIN -->
-    <!-- include etc etc navbar-damin -->
+    <!-- IF MANAGER -->
+    {% if role == 0 %}
+        {% include '0-manager/navbar-manager.html' %} 
+    {% endif %}
+    <!-- IF ADMIN -->
+    {% if role == 1 %}
+        {% include '1-admin\navbar-admin.html' %} 
+    {% endif %}
 {% endblock %}
 
 {% block content %}

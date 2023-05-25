@@ -1,5 +1,6 @@
 from django.shortcuts import render, redirect
 from django.contrib.auth import authenticate, login, logout
+from django.contrib.auth.decorators import login_required
 from .models import *
 from .forms import CreateUserForm
 from django.contrib import messages
@@ -64,9 +65,11 @@ def login_page(request):
     if request.method == 'GET':
         return render(request, template_name='login.html')
 
+@login_required(login_url='')
 def block_schedule(request):
-    return render(request,template_name="0-1-block_schedule.html")
+    return render(request,template_name="0-1-block_schedule.html",context ={'role':getRole(request)})
 
+@login_required(login_url='')
 def create_user(request):
     form = CreateUserForm()
 
@@ -79,13 +82,14 @@ def create_user(request):
             newProfile = Profile(user=new_user, rol=role)
             newProfile.save()
             messages.success(request, '¡El usuario fue creado exitosamente!')
-            return render(request,template_name="0-1-create_user.html", context={'form': form})
+            return render(request,template_name="0-1-create_user.html", context={'form': form, 'role':getRole(request)})
         else:
-            messages.error(request, 'Error al crear el usuario, por favor verique la información')
-            return render(request,template_name="0-1-create_user.html", context={'form': form})
+            messages.error(request, 'Error al crear el usuario, la contraseña debe tener minimo 8 caracteres, una mayuscula, una minuscula y un simbolo ej(#$%&) o esta usuario ya existe')
+            return render(request,template_name="0-1-create_user.html", context={'form': form, 'role':getRole(request)})
 
-    return render(request,template_name="0-1-create_user.html", context={'form': form})
+    return render(request,template_name="0-1-create_user.html", context={'form': form, 'role':getRole(request)})
 
+@login_required(login_url='')
 def delete_user(request):    
 
     if request.method == 'POST':
@@ -98,9 +102,10 @@ def delete_user(request):
     current_user = request.user
     users = User.objects.all().order_by('username').values().exclude(id=current_user.id)
     print(users)
-    context={'users':users}
+    context={'users':users,'role':getRole(request)}
     return render(request,template_name="0-1-delete_user.html",context=context)
-        
+
+@login_required(login_url='')    
 def createReport(request):
     query = Turn.objects.all()
     workBook = Workbook()
@@ -325,6 +330,7 @@ def createReport(request):
     workBook.save(response)
     return response
    
+@login_required(login_url='')
 def reports(request):    
     cvsList = CVS.objects.all()
     return render(request,template_name="0-reports.html", context={'role':getRole(request), 'cvsList':cvsList})
@@ -546,12 +552,14 @@ def listCVS(cvsName):
 
     return listNames
 
+@login_required(login_url='')
 def see_schedules(request):
     warningPage=redirectInvalidPage(request,[1,2,3])
     if(warningPage):
         return redirect(warningPage)
     
     role=getRole(request)
+    print(role)
 
     if(role==3):
         #we take the name of the admin -> cvsName
@@ -573,6 +581,7 @@ def see_schedules(request):
         listCVSs=listCVS('')
         return render(request,template_name="1-2-3-see_schedules.html", context={'listCVSs':listCVSs,'role':role})
     
+@login_required(login_url='')
 def asign_turns(request):
     warningPage=redirectInvalidPage(request,[1,2])
     if(warningPage):
@@ -592,6 +601,7 @@ def asign_turns(request):
         return render(request,template_name="1-2-asign_turns.html",context={'listCVSs':listCVSs,'role':getRole(request)})
 
 #---------- auxiliar methods for time_turns-------------------#
+@login_required(login_url='')
 def valQuantity(request,quantity):
     problems=False
     #quantity must be an integer
@@ -605,6 +615,7 @@ def valQuantity(request,quantity):
 
     return problems
 
+@login_required(login_url='')
 def valQuantityRotate(request,quantityRotate,quantity):
     problems=False
     #quantity must be an integer
@@ -631,6 +642,7 @@ def calculateTime(typeTire,quantity,rotation,quantityRotate):
 
     return timeService
 
+@login_required(login_url='')
 def valDuration(request,duration):
     problems=False
     #quantity must be an integer
@@ -681,6 +693,7 @@ def recommendTurns(cvs,duration):
     
     return listOptions
 
+@login_required(login_url='')
 def time_turns(request):
     warningPage=redirectInvalidPage(request,[1,2])
     if(warningPage):
@@ -721,6 +734,7 @@ def time_turns(request):
         messages.error(request,"No puedes acceder a este apartado sin haber llenado la información inicial del servicio")
         return redirect('asign_turns')   
     
+@login_required(login_url='')
 def select_turns(request):
     warningPage=redirectInvalidPage(request,[1,2])
     if(warningPage):
@@ -760,6 +774,7 @@ def select_turns(request):
         return redirect('asign_turns')
     
 #---------- auxiliar methods for confirm asignment-------------------#
+@login_required(login_url='')
 def valDateHour(request,cvs,dateF,hour,duration,modAs,exclude):#mod=0,As=1
     problems=False
     if(modAs):
@@ -837,7 +852,7 @@ def valDateHour(request,cvs,dateF,hour,duration,modAs,exclude):#mod=0,As=1
                 break
 
     return problems
-
+@login_required(login_url='')
 def valBill(request,bill):
     problems=False
     #quantity must be an integer
@@ -851,6 +866,7 @@ def valBill(request,bill):
     #tamaño?
     return problems
 
+@login_required(login_url='')
 def valId(request,id):
     problems=False
     #quantity must be an integer
@@ -864,6 +880,7 @@ def valId(request,id):
 
     return problems
 
+@login_required(login_url='')
 def confirm_turns(request):
     warningPage=redirectInvalidPage(request,[1,2])
     if(warningPage):
@@ -930,6 +947,7 @@ def confirm_turns(request):
 
             return redirect('see_schedules')
 
+@login_required(login_url='')
 def modify_schedules(request):
     warningPage=redirectInvalidPage(request,[1])
     if(warningPage):
@@ -964,6 +982,7 @@ def modify_schedules(request):
 
     return render(request,template_name="1-modify_schedules.html",context={'cvsName':cvsName,'sc_days':sc_days,'maxDate':maxDate,'role':getRole(request)})
 
+@login_required(login_url='')
 def modify_turn(request):
     warningPage=redirectInvalidPage(request,[1])
     if(warningPage):
@@ -1038,6 +1057,7 @@ def modify_turn(request):
         'maxDate':maxDate,
         'role':getRole(request)})
 
+@login_required(login_url='')
 def confirm_modify(request):
     warningPage=redirectInvalidPage(request,[1])
     if(warningPage):
@@ -1098,6 +1118,7 @@ def confirm_modify(request):
         messages.success(request,"Se actualizó correctamente el turno en CVS: "+_cvs+" para el día "+_date.strftime("%d/%m/%Y")+" a las "+_hour.strftime("%I:%M %p"))
         return redirect('see_schedules')
 
+@login_required(login_url='')
 def delete_service(request):
     warningPage=redirectInvalidPage(request,[1])
     if(warningPage):
@@ -1113,5 +1134,6 @@ def delete_service(request):
         messages.error(request,"No puedes acceder a este apartado sin haber llenado la información inicial del servicio")
         return redirect('modify_schedules')
 
+@login_required(login_url='')
 def validate_service_provided(request):
     return render(request,template_name="1-validate_service_provided.html")

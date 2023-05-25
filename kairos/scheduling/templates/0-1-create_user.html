@@ -7,11 +7,14 @@
 <!-- AQUI TOCA ESTABLECER IS SE VA A USAR EL NAVBAR DE MANAGER O DE ADMIN, ASÍ QUE OJO -->
 
 {% block navbar %}
-    <!-- IF ES MANEGER -->
-    {% include '0-manager/navbar-manager.html' %} 
-
-    <!-- ELSE IF ES ADMIN -->
-    <!-- include etc etc navbar-damin -->
+    <!-- IF MANAGER -->
+    {% if role == 0 %}
+        {% include '0-manager/navbar-manager.html' %} 
+    {% endif %}
+    <!-- IF ADMIN -->
+    {% if role == 1 %}
+        {% include '1-admin\navbar-admin.html' %} 
+    {% endif %}
 {% endblock %}
 
 {% block content %}
@@ -26,25 +29,25 @@
                 {% csrf_token %}
 
                 <div class="form-group">
-                    <label class="form__name-label form-label" for="input-name">Nombres</label>
+                    <label class="form__name-label form-label" for="input-name">Agregar el nombre completo del usuario a crear </label>
                     <br>
                     {{form.first_name}}
                 </div>
     
                 <div class="form-group">
-                    <label class="form__surnames-label form-label" for="input-surnames">Apellidos</label>
+                    <label class="form__surnames-label form-label" for="input-surnames">Agregar los apellidos del usuario a crear</label>
                     <br>
                     {{form.last_name}}
                 </div>
     
                 <div class="form-group">
-                    <label class="form__username-label form-label" for="input-username">Nombre de usuario</label>
+                    <label class="form__username-label form-label" for="input-username">Agregue un nombre de usuario</label>
                     <br>
                     {{form.username}}
                 </div>
     
                 <div class="form-group">
-                    <label class="form__rol-label form-label" for="input-rol">Rol</label>
+                    <label class="form__rol-label form-label" for="input-rol">Agregue el rol del usuario a crear</label>
                     <br>
                     <select class="form-select" name="rol" required>
                         <option value="0">Gerente</option>
@@ -55,19 +58,19 @@
                 </div>
     
                 <div class="form-group">
-                    <label class="form__email-label form-label" for="input-email">Correo</label>
+                    <label class="form__email-label form-label" for="input-email">Agregue el correo del usuario a crear</label>
                     <br>
                     {{form.email}}
                 </div>
     
                 <div class="form-group">
-                    <label class="form__password-label form-label" for="input-password">Contraseña</label>
+                    <label class="form__password-label form-label" for="input-password">Agregue la contraseña del usuario a crear</label>
                     <br>
                     {{form.password1}}
                 </div>
     
                 <div class="form-group">
-                    <label class="form__confirm-password-label form-label" for="input-confirm-password">Confirmar contraseña</label>
+                    <label class="form__confirm-password-label form-label" for="input-confirm-password">Confirme la contraseña</label>
                     <br>
                     {{form.password2}}
                 </div>
