@@ -19,70 +19,61 @@
     <div class="row justify-content-center align-items-center py-5">
         <div class="col-12 col-md-9">
             <div class="text-center">
-                <h2 class="">CREAR USUARIOS DENTRO DE LA APP</h2>
+                <h2 >CREAR USUARIOS DENTRO DE LA APP</h2>
             </div>
             <form class="form py-5" method = "POST" actions="">
 
                 {% csrf_token %}
 
-                <div class="form__field form__field--1">
+                <div class="form-group">
                     <label class="form__name-label form-label" for="input-name">Nombres</label>
                     <br>
                     {{form.first_name}}
                 </div>
     
-                <div class="form__field form__field--2">
+                <div class="form-group">
                     <label class="form__surnames-label form-label" for="input-surnames">Apellidos</label>
                     <br>
                     {{form.last_name}}
                 </div>
     
-                <div class="form__field form__field--3">
+                <div class="form-group">
                     <label class="form__username-label form-label" for="input-username">Nombre de usuario</label>
                     <br>
                     {{form.username}}
                 </div>
     
-                <div class="form__field form__field--4">
+                <div class="form-group">
                     <label class="form__rol-label form-label" for="input-rol">Rol</label>
                     <br>
-                    <select name="rol" required>
+                    <select class="form-select" name="rol" required>
                         <option value="0">Gerente</option>
                         <option value="1">Administrador de CVS</option>
                         <option value="2">Asesor comercial</option>
                         <option value="3">Operario</option>
                     </select>
                 </div>
-
-                <!-- <div class="form__field form__field--4">
-                    <label class="form__rol-label form-label" for="input-rol">CVS</label>
-                    <br>
-                    <select name="cvs" required>
-                        <option value="0">Medellín</option>
-                        <option value="1">Bogotá</option>
-                    </select>
-                </div> -->
     
-                <div class="form__field form__field--5">
+                <div class="form-group">
                     <label class="form__email-label form-label" for="input-email">Correo</label>
                     <br>
                     {{form.email}}
                 </div>
     
-                <div class="form__field form__field--6">
+                <div class="form-group">
                     <label class="form__password-label form-label" for="input-password">Contraseña</label>
                     <br>
                     {{form.password1}}
                 </div>
     
-                <div class="form__field form__field--7">
+                <div class="form-group">
                     <label class="form__confirm-password-label form-label" for="input-confirm-password">Confirmar contraseña</label>
                     <br>
                     {{form.password2}}
                 </div>
 
                 <br>
-                <div class="form__field form__field--9 text-center my-0">
+                <div class="form-group text-center my-0">
                     <button class="form__button btn btn-primary btn-lg btn-outline-light" type="submit">Enviar</button>
                 </div>
 
