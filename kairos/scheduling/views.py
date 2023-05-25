@@ -111,18 +111,20 @@ def block(request):
         fDate = date.fromisoformat(request.POST.get('finalDate'))
         fHour = time.fromisoformat(request.POST.get('finalHour'))
         _comment = request.POST.get('comment')
+
+        if(fDate.weekday()==5):
+            fHour = time.fromisoformat('12:00')
+
         #if is only one day then is from the start hour to the final hour
         if(sDate == fDate):
             beg = timedelta(hours=sHour.hour, minutes=sHour.minute)
             end = timedelta(hours = fHour.hour, minutes=fHour.minute)
             difference =  end - beg
-            print(difference)
             differenceMinutes = difference.total_seconds()/60
-            print(differenceMinutes)
             duration=int(differenceMinutes)
-            print(duration)
-            flag=valDateHour(request,cvsName,sDate,sHour,duration,1,None)
-            if(flag):
+            flag=valDateHour(request,cvsName,sDate,sHour,duration,1,None,True)
+            flag1 = valBlocks(request, cvsName, sDate, duration, sHour)
+            if(flag or flag1):
                 messages.error(request,"Hay turnos asignados para esta fecha, por favor modifiquelos antes de seguir con el bloqueo.")
             else:
                 newBlock=Block(
@@ -143,7 +145,103 @@ def block(request):
         #in the first day, then the other is from 7am to 18pm, then when we get to the last day we do it from 7am
         #until the final hour.
         else:
-            return redirect()
+            day = sDate
+            totalDays = fDate-sDate
+            totalDays = int((totalDays.total_seconds()/3600)/24)
+            for i in range (0,totalDays+1):
+                if (i == 0):
+                    beg = timedelta(hours=sHour.hour, minutes=sHour.minute)
+                    if(day.weekday()==5):
+                        end = timedelta(hours = 12, minutes=00)
+                    else:
+                        end = timedelta(hours = 17, minutes=15)
+                    difference =  end - beg
+                    differenceMinutes = difference.total_seconds()/60
+                    duration=int(differenceMinutes)
+                    flag=valDateHour(request,cvsName,day,sHour,duration,1,None,True)
+                    flag1 = valBlocks(request, cvsName, day, duration, sHour)
+                    if(flag or flag1):
+                        messages.error(request,"Hay turnos asignados para esta fecha, por favor modifiquelos antes de seguir con el bloqueo.")
+                        break
+                    else:
+                        if(day.weekday()==5):
+                            end = time.fromisoformat('12:00')
+                        else:
+                            end = time.fromisoformat('17:15')
+                        newBlock=Block(
+                            cvs = CVS.objects.get(name=cvsName),
+                            duration = duration,
+                            startDate = day,
+                            startHour = sHour,
+                            endDate = day,
+                            endHour = end,
+                            comment = _comment,
+                            scheduledBy = Profile.objects.get(user=request.user)
+                        )
+                        newBlock.save()
+                        messages.success(request,"Se ha agendado correctamente el bloqueo en CVS: "+cvsName+" el día "+sDate.strftime("%d/%m/%Y")+" a las "+sHour.strftime("%I:%M %p"))
+
+                elif (i == totalDays):
+                    beg=timedelta(hours=7, minutes=45)
+                    end = timedelta(hours = fHour.hour, minutes=fHour.minute)
+                    difference =  end - beg
+                    differenceMinutes = difference.total_seconds()/60
+                    duration=int(differenceMinutes)
+                    flag=valDateHour(request,cvsName,day,time.fromisoformat('07:45'),duration,1,None,True)
+                    flag1 = valBlocks(request, cvsName, day, duration, time.fromisoformat('07:45'))
+                    if(flag or flag1):
+                        messages.error(request,"Hay turnos asignados para esta fecha, por favor modifiquelos antes de seguir con el bloqueo.")
+                        break
+                    else:
+                        newBlock=Block(
+                            cvs = CVS.objects.get(name=cvsName),
+                            duration = duration,
+                            startDate = day,
+                            startHour = time.fromisoformat('07:45'),
+                            endDate = day,
+                            endHour = fHour,
+                            comment = _comment,
+                            scheduledBy = Profile.objects.get(user=request.user)
+                        )
+                        newBlock.save()
+                        messages.success(request,"Se ha agendado correctamente el bloqueo en CVS: "+cvsName+" el día "+day.strftime("%d/%m/%Y")+" a las 7:45am")
+
+                else:
+                    beg=timedelta(hours=7, minutes=45)
+                    if(day.weekday()==5):
+                        end = timedelta(hours = 12, minutes=00)
+                    else:
+                        end = timedelta(hours = 17, minutes=15)
+                    difference =  end - beg
+                    differenceMinutes = difference.total_seconds()/60
+                    duration=int(differenceMinutes)
+                    flag=valDateHour(request,cvsName,day,time.fromisoformat('07:45'),duration,1,None,True)
+                    flag1 = valBlocks(request, cvsName, day, duration, time.fromisoformat('07:45'))
+                    if(flag or flag1):
+                        messages.error(request,"Hay turnos asignados para esta fecha, por favor modifiquelos antes de seguir con el bloqueo.")
+                        break
+                    else:
+                        if(day.weekday()==5):
+                            end = time.fromisoformat('12:00')
+                        else:
+                            end = time.fromisoformat('17:15')
+                        
+                        newBlock=Block(
+                            cvs = CVS.objects.get(name=cvsName),
+                            duration = duration,
+                            startDate = day,
+                            startHour = time.fromisoformat('07:45'),
+                            endDate = day,
+                            endHour = end,
+                            comment = _comment,
+                            scheduledBy = Profile.objects.get(user=request.user)
+                        )
+                        newBlock.save()
+                        messages.success(request,"Se ha agendado correctamente el bloqueo en CVS: "+cvsName+" el día "+day.strftime("%d/%m/%Y")+" a las 7:45am")
+
+                day = day + timedelta(days=1)
+                print(day)
+            return redirect('see_schedules')
 
         
         #then we have to see what we are going to do with the turns assigned in this dates and hours
@@ -922,7 +1020,7 @@ def select_turns(request):
         return redirect('asign_turns')
     
 #---------- auxiliar methods for confirm asignment-------------------#
-def valDateHour(request,cvs,dateF,hour,duration,modAs,exclude):#mod=0,As=1
+def valDateHour(request,cvs,dateF,hour,duration,modAs,exclude, block):#mod=0,As=1
     problems=False
     if(modAs):
         dateTurns=Turn.objects.filter(cvs__name=cvs).filter(date=dateF).order_by('hour')
@@ -954,18 +1052,19 @@ def valDateHour(request,cvs,dateF,hour,duration,modAs,exclude):#mod=0,As=1
     begHour=timedelta(hours=hour.hour,minutes=hour.minute)
     endHour=begHour+timedelta(minutes=duration)
 
-    #turn must not be earlier than 7:45 nor later than 17:15
-    if(begHour<timedelta(hours=7,minutes=45)):
-        problems=True
-        messages.error(request,"El servicio no puede comenzar antes del horario laboral (7:45am)")
-    if(endHour>timedelta(hours=17,minutes=15)):
-        problems=True
-        messages.error(request,"El servicio no puede terminar luego del horario laboral (5:15pm)")
-    
-    #turn must not end later that midday on saturdays
-    if(dateF.weekday()==5 and endHour>timedelta(hours=12)):
-        problems=True
-        messages.error(request,"El servicio no puede terminar luego del horario laboral de los sábados (12:00pm)")
+    if not(block):
+        #turn must not be earlier than 7:45 nor later than 17:15
+        if(begHour<timedelta(hours=7,minutes=45)):
+            problems=True
+            messages.error(request,"El servicio no puede comenzar antes del horario laboral (7:45am)")
+        if(endHour>timedelta(hours=17,minutes=15)):
+            problems=True
+            messages.error(request,"El servicio no puede terminar luego del horario laboral (5:15pm)")
+        
+        #turn must not end later that midday on saturdays
+        if(dateF.weekday()==5 and endHour>timedelta(hours=12)):
+            problems=True
+            messages.error(request,"El servicio no puede terminar luego del horario laboral de los sábados (12:00pm)")
 
     #turn must not be scheduled on sundays
     if(dateF.weekday()==6):
@@ -1081,7 +1180,7 @@ def confirm_turns(request):
         #data to validate
         dateF=date.fromisoformat(request.POST.get('date'))
         hour=time.fromisoformat(request.POST.get('hour'))
-        flag1=valDateHour(request,cvsName,dateF,hour,int(duration),1,None)
+        flag1=valDateHour(request,cvsName,dateF,hour,int(duration),1,None,False)
         flag4 = valBlocks(request, cvsName, dateF, int(duration),hour)
         bill=int(request.POST.get('bill'))
         flag2=valBill(request,bill)
@@ -1270,7 +1369,7 @@ def confirm_modify(request):
     flag1=valBill(request,_bill)
     flag3=valDuration(request,_duration)
     modTurn=Turn.objects.get(id=int(request.POST.get('idTurn')))
-    flag2=valDateHour(request,_cvs,_date,_hour,_duration,0,modTurn.hour)
+    flag2=valDateHour(request,_cvs,_date,_hour,_duration,0,modTurn.hour,False)
     flag4=valId(request,_idCustomer)
     flag5=valQuantity(request,_quantity)
     
