@@ -3,7 +3,7 @@
 
 {% block styles %}
 <link rel="stylesheet" href="{% static 'schedules.css'%}">
-<link rel="stylesheet" href="{% static 'asign_turns.css'%}">
+<link rel="stylesheet" href="{% static 'sel_mod_turn.css'%}">
 {% endblock %}
 
 {% block title %}
@@ -40,14 +40,14 @@
         </div>
         <div class="form-displayer">
             <!-- section to change the cvs -->
-            <form style="margin: 2em;" action="" method="post">
+            <form style="margin: 2em;" action="{% url 'time_turns' %}" method="post">
                 {%csrf_token%}
                 <!-- info to keep -->
                 <input type="hidden" name="typeTire" value="{{typeTire}}">
                 <input type="hidden" name="quantity" value="{{quantity}}">
                 <input type="hidden" name="rotation" value="{{rotation}}">
                 <input type="hidden" name="quantityRotate" value="{{quantityRotate}}">
-                <input type="hidden" name="duration" value="{{duration}}">
+                <!-- section to select the cvs -->
                 <h2>Cambio de cvs</h2>
                 <div class="form-floating">
                     <select class="form-select" id="cvsName" name="cvsName" aria-label="change cvs">
@@ -58,53 +58,41 @@
                     </select>
                     <label for="cvsName">Visualizando horario de:</label>
                 </div>
-                <button type="submit" class="ms-2 mt-2 btn btn-secondary btn-outline-light ">Cambiar</button>
+                <button type="submit" class="btn btn-secondary btn-outline-light ">Cambiar</button>
             </form>
             <hr>
-                <!-- section to see the calculated time for the service -->
-            <form style="margin: 2em;" action="" method="post">
-                {%csrf_token%}
-                <!-- info to keep -->
-                <input type="hidden" name="cvsName" value="{{cvsName}}">
-                <input type="hidden" name="typeTire" value="{{typeTire}}">
-                <input type="hidden" name="quantity" value="{{quantity}}">
-                <input type="hidden" name="rotation" value="{{rotation}}">
-                <input type="hidden" name="quantityRotate" value="{{quantityRotate}}">
-                <h2>Tiempo del servicio</h2>
-                <div class="form-floating">
-                    <input class="form-control" type="number" name="duration" id="duration" value="{{duration}}" required>
-                    <label for="duration">Aproximado (minutos)</label>
-                </div>
-                
-                    
-                <button type="submit" class="ms-2 mt-2 btn btn-secondary btn-outline-light ">Refrescar</button>
-            </form>
-            <div class="card" style="margin: 2em;">
+            <div class="card" style="margin: 0 2em;">
                 <div class="card-body">
                     <h5 class="card-title">Horarios recomendados</h5>
-                    <h6 class="card-subtitle mb-2 text-body-secondary">Recuerde que los horarios presentados se tienen en cuenta de la siguiente manera: <br> duración + 5 minutos de descanso</h6>
+                    <p class="card-text" style="background-color: #E9862F; color: white; text-shadow: 0 0 2px black ; border-radius: 5px; padding: 5px;">El tiempo calculado fue de {{duration}} minutos</p>
+                    <h6 class="card-subtitle mb-2 text-body-secondary">Recuerde que el tiempo calculado ya incluye los 5 minutos de descanso del operario</h6>
                     <!-- content space for the recommendations -->
-                    <!-- falta el for -->
-                    <p class="card-text">Some quick</p>
+                    <ul>
+                        {% for reco in recommendations %}
+                        <li>{{reco}}</li>
+                        {% endfor %}
+                    </ul>
                 </div>
             </div>
-            <form action="{% url 'select_turns' %}" method="post">
-                {%csrf_token%}
-                <!-- info to keep -->
-                <input type="hidden" name="cvsName" value="{{cvsName}}">
-                <input type="hidden" name="typeTire" value="{{typeTire}}">
-                <input type="hidden" name="quantity" value="{{quantity}}">
-                <input type="hidden" name="rotation" value="{{rotation}}">
-                <input type="hidden" name="quantityRotate" value="{{quantityRotate}}">
-                <input type="hidden" name="duration" value="{{duration}}">
-                <button type="submit" class="mt-2 btn btn-secondary btn-outline-light position-absolute end-0 ">Continuar</button>
-            </form><br><br>
-            <form action="{% url 'asign_turns' %}" method="post">
-                {%csrf_token%}
-                <!-- info to keep -->
-                <input type="hidden" name="cvsName" value="{{cvsName}}">
-                <button type="submit" class="mt-2 btn btn-secondary btn-outline-light position-absolute end-0 ">Volver</button>
-            </form>
+            <div style="margin: 0 2em; display: flex; flex-direction: row-reverse; justify-content: space-between; flex-wrap: wrap;">
+                <form action="{% url 'select_turns' %}" method="post">
+                    {%csrf_token%}
+                    <!-- info to keep -->
+                    <input type="hidden" name="cvsName" value="{{cvsName}}">
+                    <input type="hidden" name="typeTire" value="{{typeTire}}">
+                    <input type="hidden" name="quantity" value="{{quantity}}">
+                    <input type="hidden" name="rotation" value="{{rotation}}">
+                    <input type="hidden" name="quantityRotate" value="{{quantityRotate}}">
+                    <input type="hidden" name="duration" value="{{duration}}">
+                    <button type="submit" class="btn btn-secondary btn-outline-light">Continuar</button>
+                </form>
+                <form action="{% url 'asign_turns' %}" method="post">
+                    {%csrf_token%}
+                    <!-- info to keep -->
+                    <input type="hidden" name="cvsName" value="{{cvsName}}">
+                    <button type="submit" class="btn btn-secondary btn-outline-light">Volver</button>
+                </form>
+            </div>
         </div>
     </div>
 {% endblock %}
