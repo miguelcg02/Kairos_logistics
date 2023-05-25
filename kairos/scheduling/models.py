@@ -53,3 +53,21 @@ class Turn(models.Model):
 
     def __str__(self):
         return str(self.bill) + ' - ' + self.cvs.name
+
+class Block(models.Model):
+    cvs = models.ForeignKey(CVS,on_delete=models.CASCADE, blank=False) # location of the block
+    duration = models.IntegerField(blank=False) # time in minutes of the block
+    startDate = models.DateField(auto_now=False, auto_now_add=False,blank=False) # the beginning of the block
+    startHour = models.TimeField(auto_now=False, auto_now_add=False,blank=False) # the beginning of the block
+    endDate = models.DateField(auto_now=False, auto_now_add=False,blank=False) # the end of the block
+    endHour = models.TimeField(auto_now=False, auto_now_add=False,blank=False) # the end of the block
+    scheduledBy = models.ForeignKey(Profile,on_delete=models.CASCADE,blank=False,related_name="person_who_schedules_block") # person who scheduled the block
+    comment = models.TextField(max_length=300,blank=True, null=True) # comment about the block
+
+    class Meta:
+        verbose_name = "block"
+        verbose_name_plural = "blocks"
+        db_table = "block"
+
+    def __str__(self):
+        return 'Bloqueo del CVS ' + self.cvs.name + ' de las fechas ' + str(self.startDate) + ' - ' + str(self.endDate)

@@ -76,6 +76,8 @@ def home_adviser(request):
 def home_operator(request):
     return render(request,template_name="3-operator/home-operator.html")
 
+#---------- auxiliar methods for block schedule -------------------#
+
 def block_schedule(request):
     warningPage=redirectInvalidPage(request,[0,1])
     if(warningPage):
@@ -103,22 +105,40 @@ def block(request):
         return redirect(warningPage)
     
     if(request.method=='POST'):
-        sc_days=toSee_schedules(request.POST.get('cvsName'))
-        startDate = date.fromisoformat(request.POST.get('startDate'))
-        startHour = request.POST.get('startHour')
-        finalDate = date.fromisoformat(request.POST.get('finalDate'))
-        finalHour = request.POST.get('finalHour')
-
-        
+        cvsName = request.POST.get('cvsName')
+        sDate = date.fromisoformat(request.POST.get('startDate'))
+        sHour = time.fromisoformat(request.POST.get('startHour'))
+        fDate = date.fromisoformat(request.POST.get('finalDate'))
+        fHour = time.fromisoformat(request.POST.get('finalHour'))
+        _comment = request.POST.get('comment')
         #if is only one day then is from the start hour to the final hour
-        if(startDate == finalDate):
-            #contDay=0
-            #start=timedelta(hours=datetime.strptime(startHour,'%I'), minutes=datetime.strptime(startHour,'%M'))
-            #every day starts at 07:45am
-            #end=timedelta(hours=datetime.strptime(finalHour,'%I'), minutes=datetime.strptime(finalHour,'%M'))
-            #newSC_event=["sc-event block",deltas2line(start,end)]
-            #sc_days[contDay].append(newSC_event)
-            return redirect()
+        if(sDate == fDate):
+            beg = timedelta(hours=sHour.hour, minutes=sHour.minute)
+            end = timedelta(hours = fHour.hour, minutes=fHour.minute)
+            difference =  end - beg
+            print(difference)
+            differenceMinutes = difference.total_seconds()/60
+            print(differenceMinutes)
+            duration=int(differenceMinutes)
+            print(duration)
+            flag=valDateHour(request,cvsName,sDate,sHour,duration,1,None)
+            if(flag):
+                messages.error(request,"Hay turnos asignados para esta fecha, por favor modifiquelos antes de seguir con el bloqueo.")
+            else:
+                newBlock=Block(
+                    cvs = CVS.objects.get(name=cvsName),
+                    duration = duration,
+                    startDate = sDate,
+                    startHour = sHour,
+                    endDate = fDate,
+                    endHour = fHour,
+                    comment = _comment,
+                    scheduledBy = Profile.objects.get(user=request.user)
+                )
+                newBlock.save()
+                messages.success(request,"Se ha agendado correctamente el bloqueo en CVS: "+cvsName+" el día "+sDate.strftime("%d/%m/%Y")+" a las "+sHour.strftime("%I:%M %p"))
+                
+                return redirect('see_schedules')
         #Check if is more than one day, if so from the first date we have to do a for, from the first hour until 18pm
         #in the first day, then the other is from 7am to 18pm, then when we get to the last day we do it from 7am
         #until the final hour.
@@ -131,6 +151,8 @@ def block(request):
         
 
     return redirect('see_schedules')
+
+#---------- methods for users -------------------#
 
 def create_user(request):
     form = CreateUserForm()
@@ -163,7 +185,9 @@ def delete_user(request):
     users = User.objects.all().order_by('username').values()
     context={'users':users}
     return render(request,template_name="0-1-delete_user.html",context=context)
-        
+
+#---------- methods for excel report -------------------#
+
 def createReport(request):
     warningPage=redirectInvalidPage(request,[0])
     if(warningPage):
@@ -598,21 +622,54 @@ def toSee_schedules(cvsName):
         sc_days[contDay].append(newSC_event)
 
         #we get actualDate's agenda
-        agenda=Turn.objects.filter(date=actualDate).filter(cvs__name=cvsName).order_by("hour")
+        turns = list(Turn.objects.filter(date=actualDate).filter(cvs__name=cvsName).order_by("hour"))
+        blocks = list(Block.objects.filter(startDate=actualDate).filter(cvs__name=cvsName).order_by("startHour"))
+        agenda=[]
+        index = len(turns) + len(blocks)
+        i = 0
+        while (i<index):
+            if(len(turns)):
+                if(len(blocks)):
+                    turnHour = timedelta(hours=turns[0].hour.hour, minutes=turns[0].hour.minute)
+                    blockHour = timedelta(hours=blocks[0].startHour.hour, minutes=blocks[0].startHour.minute)
+                    if( turnHour > blockHour):
+                        agenda.append(blocks.pop(0))  
+                    else:
+                        agenda.append(turns.pop(0))
+                else:
+                    agenda.append(turns.pop(0))
+            else:
+                agenda.append(blocks.pop(0))
+            i+=1
 
         for event in agenda:
-            beg=timedelta(hours=event.hour.hour,minutes=event.hour.minute)
-            fillFree(ti,beg,sc_days[contDay])
+            if(type(event) == type(Turn())):
+                beg=timedelta(hours=event.hour.hour,minutes=event.hour.minute)
+                fillFree(ti,beg,sc_days[contDay])
 
-            #finally we add the service
-            finish=timedelta(minutes=event.duration)
-            finish+=beg
-            debugEvent(False,beg,finish)
+                #finally we add the service
+                finish=timedelta(minutes=event.duration)
+                finish+=beg
+                debugEvent(False,beg,finish)
 
-            newSC_event=["sc-event turn",deltas2line(beg,finish),"",delta2time(beg)+" - "+delta2time(finish), processData(event)]
-            sc_days[contDay].append(newSC_event)
+                newSC_event=["sc-event turn",deltas2line(beg,finish),"",delta2time(beg)+" - "+delta2time(finish), processData(event)]
+                sc_days[contDay].append(newSC_event)
 
-            ti=finish
+                ti=finish
+            else:
+                beg=timedelta(hours=event.startHour.hour,minutes=event.startHour.minute)
+                fillFree(ti,beg,sc_days[contDay])
+
+                #finally we add the service
+                finish=timedelta(minutes=event.duration)
+                finish+=beg
+                debugEvent(False,beg,finish)
+
+                newSC_event=["sc-event block",deltas2line(beg,finish)]
+                sc_days[contDay].append(newSC_event)
+
+                ti=finish
+
 
         #day ends at...
         # if sturday at 12:00m 
@@ -943,6 +1000,45 @@ def valDateHour(request,cvs,dateF,hour,duration,modAs,exclude):#mod=0,As=1
 
     return problems
 
+def valBlocks(request, cvs, dateF, duration, startHour):
+    problems = False
+    dateBlocks=Block.objects.filter(cvs__name=cvs).filter(startDate=dateF).order_by('startHour')
+    actualBlocks=[]
+    for block in dateBlocks:
+        beg=timedelta(hours=block.startHour.hour,minutes=block.startHour.minute)
+        end=beg+timedelta(minutes=block.duration)
+        actualBlocks.append([beg,end])
+    
+    begHour=timedelta(hours=startHour.hour,minutes=startHour.minute)
+    endHour=begHour+timedelta(minutes=duration)
+    if(len(actualBlocks)):
+        #beg hour is crashing 
+        for block in actualBlocks:
+            if(begHour<block[1]):
+                if(begHour>block[0]):
+                    problems=True
+                    messages.error(request,"El servicio choca con el bloqueo de las "+delta2time(block[0]))
+
+                break
+        #end hour is crashing 
+        actualBlocks.reverse()
+        for block in actualBlocks:
+            if(endHour>block[0]):
+                if(endHour<block[1]):
+                    problems=True
+                    messages.error(request,"El servicio choca con el bloqueo de las "+delta2time(block[0]))
+
+                break
+        #it is something in the middle
+        for turn in actualBlocks:
+            if(endHour>block[1] and begHour<block[0]):
+                problems=True
+                messages.error(request,"El servicio choca con el bloqueo de las "+delta2time(block[0]))
+
+                break
+    
+    return problems
+
 def valBill(request,bill):
     problems=False
     #quantity must be an integer
@@ -986,6 +1082,7 @@ def confirm_turns(request):
         dateF=date.fromisoformat(request.POST.get('date'))
         hour=time.fromisoformat(request.POST.get('hour'))
         flag1=valDateHour(request,cvsName,dateF,hour,int(duration),1,None)
+        flag4 = valBlocks(request, cvsName, dateF, int(duration),hour)
         bill=int(request.POST.get('bill'))
         flag2=valBill(request,bill)
         idCustomer=int(request.POST.get('idCustomer'))
@@ -993,7 +1090,7 @@ def confirm_turns(request):
         nameCustomer=request.POST.get('nameCustomer')
         telCustomer=request.POST.get('telCustomer')
 
-        if(flag1 or  flag2 or flag3):
+        if(flag1 or  flag2 or flag3 or flag4):
             minDate=date.today().isoformat()
             if(date.today().weekday==6):
                 maxDate=(date.today()+timedelta(days=8)).isoformat()
@@ -1034,6 +1131,8 @@ def confirm_turns(request):
             messages.success(request,"Se ha agendado correctamente el turno en CVS: "+cvsName+" el día "+dateF.strftime("%d/%m/%Y")+" a las "+hour.strftime("%I:%M %p"))
 
             return redirect('see_schedules')
+
+#---------- auxiliar methods for modify turns -------------------#
 
 def modify_schedules(request):
     warningPage=redirectInvalidPage(request,[1])
@@ -1217,6 +1316,8 @@ def delete_service(request):
     else:
         messages.error(request,"No puedes acceder a este apartado sin haber llenado la información inicial del servicio")
         return redirect('modify_schedules')
+
+#---------- auxiliar methods for validate service -------------------#
 
 def validate_service_provided(request):
     warningPage=redirectInvalidPage(request,[1])

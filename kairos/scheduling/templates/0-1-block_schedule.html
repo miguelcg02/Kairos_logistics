@@ -95,6 +95,14 @@
                             </div>
                             <input type="hidden" name="cvsName" value="{{cvsName}}">
                         </div>
+
+                        <div class="row">
+                            <div class="input-group">
+                                <label class="input-group-text" for="comment">Explique por qué se está generando el bloqueo</label>
+                                <textarea class="form-control" type="text" name="comment" id="comment" maxlength="300" required>{{comment}}</textarea>
+                            </div>
+                        </div>
+
                         <!-- start confirm modal -->
                         <!-- Button trigger modal -->
                         
@@ -110,7 +118,6 @@
                                     </div>
                                     <div class="modal-body">
                                     <p style="font-weight: bolder;">¿Está seguro que desea confirmar el bloqueo?</p>
-                                    <p>Se eliminaran todos los turnos que habían en estas fechas</p>
                                     </div>
                                     <div class="modal-footer">
                                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
