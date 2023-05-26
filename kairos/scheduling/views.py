@@ -66,9 +66,195 @@ def login_page(request):
     if request.method == 'GET':
         return render(request, template_name='login.html')
 
+def home_manager(request):
+    return render(request,template_name="0-manager/home-manager.html")
+
+def home_admin(request):
+    return render(request,template_name="1-admin/home-admin.html")
+
+def home_adviser(request):
+    return render(request,template_name="2-adviser/home-adviser.html")
+
+def home_operator(request):
+    return render(request,template_name="3-operator/home-operator.html")
+
+#---------- auxiliar methods for block schedule -------------------#
+
 @login_required(login_url='')
 def block_schedule(request):
-    return render(request,template_name="0-1-block_schedule.html",context ={'role':getRole(request)})
+    warningPage=redirectInvalidPage(request,[0,1])
+    if(warningPage):
+        return redirect(warningPage)
+    
+    if(request.method=='POST'):
+        #get the selected name to show the preview
+        cvsName=request.POST.get('cvsName')
+        #events' array (freetime and services) for the context
+        sc_days=toSee_schedules(cvsName)
+        #cvs' names for the combo box already selected
+        listCVSs=listCVS(cvsName)
+
+        minDate=date.today().isoformat()
+
+        return render(request,template_name="0-1-block_schedule.html", context={'cvsName':cvsName,'sc_days':sc_days,'listCVSs':listCVSs,'minDate':minDate,'role':getRole(request)})
+    else:
+        #cvs' names for the combo box
+        listCVSs=listCVS('')
+    return render(request,template_name="0-1-block_schedule.html", context={'listCVSs':listCVSs,'role':getRole(request)})
+
+@login_required(login_url='')
+def block(request):
+    warningPage=redirectInvalidPage(request,[0,1])
+    if(warningPage):
+        return redirect(warningPage)
+    
+    if(request.method=='POST'):
+        cvsName = request.POST.get('cvsName')
+        sDate = date.fromisoformat(request.POST.get('startDate'))
+        sHour = time.fromisoformat(request.POST.get('startHour'))
+        fDate = date.fromisoformat(request.POST.get('finalDate'))
+        fHour = time.fromisoformat(request.POST.get('finalHour'))
+        _comment = request.POST.get('comment')
+
+        if(fDate.weekday()==5):
+            fHour = time.fromisoformat('12:00')
+
+        #if is only one day then is from the start hour to the final hour
+        if(sDate == fDate):
+            beg = timedelta(hours=sHour.hour, minutes=sHour.minute)
+            end = timedelta(hours = fHour.hour, minutes=fHour.minute)
+            difference =  end - beg
+            differenceMinutes = difference.total_seconds()/60
+            duration=int(differenceMinutes)
+            flag=valDateHour(request,cvsName,sDate,sHour,duration,1,None,True)
+            flag1 = valBlocks(request, cvsName, sDate, duration, sHour)
+            if(flag or flag1):
+                messages.error(request,"Hay turnos asignados para esta fecha, por favor modifiquelos antes de seguir con el bloqueo.")
+            else:
+                newBlock=Block(
+                    cvs = CVS.objects.get(name=cvsName),
+                    duration = duration,
+                    startDate = sDate,
+                    startHour = sHour,
+                    endDate = fDate,
+                    endHour = fHour,
+                    comment = _comment,
+                    scheduledBy = Profile.objects.get(user=request.user)
+                )
+                newBlock.save()
+                messages.success(request,"Se ha agendado correctamente el bloqueo en CVS: "+cvsName+" el día "+sDate.strftime("%d/%m/%Y")+" a las "+sHour.strftime("%I:%M %p"))
+                
+                return redirect('see_schedules')
+        #Check if is more than one day, if so from the first date we have to do a for, from the first hour until 18pm
+        #in the first day, then the other is from 7am to 18pm, then when we get to the last day we do it from 7am
+        #until the final hour.
+        else:
+            day = sDate
+            totalDays = fDate-sDate
+            totalDays = int((totalDays.total_seconds()/3600)/24)
+            for i in range (0,totalDays+1):
+                if (i == 0):
+                    beg = timedelta(hours=sHour.hour, minutes=sHour.minute)
+                    if(day.weekday()==5):
+                        end = timedelta(hours = 12, minutes=00)
+                    else:
+                        end = timedelta(hours = 17, minutes=15)
+                    difference =  end - beg
+                    differenceMinutes = difference.total_seconds()/60
+                    duration=int(differenceMinutes)
+                    flag=valDateHour(request,cvsName,day,sHour,duration,1,None,True)
+                    flag1 = valBlocks(request, cvsName, day, duration, sHour)
+                    if(flag or flag1):
+                        messages.error(request,"Hay turnos asignados para esta fecha, por favor modifiquelos antes de seguir con el bloqueo.")
+                        break
+                    else:
+                        if(day.weekday()==5):
+                            end = time.fromisoformat('12:00')
+                        else:
+                            end = time.fromisoformat('17:15')
+                        newBlock=Block(
+                            cvs = CVS.objects.get(name=cvsName),
+                            duration = duration,
+                            startDate = day,
+                            startHour = sHour,
+                            endDate = day,
+                            endHour = end,
+                            comment = _comment,
+                            scheduledBy = Profile.objects.get(user=request.user)
+                        )
+                        newBlock.save()
+                        messages.success(request,"Se ha agendado correctamente el bloqueo en CVS: "+cvsName+" el día "+sDate.strftime("%d/%m/%Y")+" a las "+sHour.strftime("%I:%M %p"))
+
+                elif (i == totalDays):
+                    beg=timedelta(hours=7, minutes=45)
+                    end = timedelta(hours = fHour.hour, minutes=fHour.minute)
+                    difference =  end - beg
+                    differenceMinutes = difference.total_seconds()/60
+                    duration=int(differenceMinutes)
+                    flag=valDateHour(request,cvsName,day,time.fromisoformat('07:45'),duration,1,None,True)
+                    flag1 = valBlocks(request, cvsName, day, duration, time.fromisoformat('07:45'))
+                    if(flag or flag1):
+                        messages.error(request,"Hay turnos asignados para esta fecha, por favor modifiquelos antes de seguir con el bloqueo.")
+                        break
+                    else:
+                        newBlock=Block(
+                            cvs = CVS.objects.get(name=cvsName),
+                            duration = duration,
+                            startDate = day,
+                            startHour = time.fromisoformat('07:45'),
+                            endDate = day,
+                            endHour = fHour,
+                            comment = _comment,
+                            scheduledBy = Profile.objects.get(user=request.user)
+                        )
+                        newBlock.save()
+                        messages.success(request,"Se ha agendado correctamente el bloqueo en CVS: "+cvsName+" el día "+day.strftime("%d/%m/%Y")+" a las 7:45am")
+
+                else:
+                    beg=timedelta(hours=7, minutes=45)
+                    if(day.weekday()==5):
+                        end = timedelta(hours = 12, minutes=00)
+                    else:
+                        end = timedelta(hours = 17, minutes=15)
+                    difference =  end - beg
+                    differenceMinutes = difference.total_seconds()/60
+                    duration=int(differenceMinutes)
+                    flag=valDateHour(request,cvsName,day,time.fromisoformat('07:45'),duration,1,None,True)
+                    flag1 = valBlocks(request, cvsName, day, duration, time.fromisoformat('07:45'))
+                    if(flag or flag1):
+                        messages.error(request,"Hay turnos asignados para esta fecha, por favor modifiquelos antes de seguir con el bloqueo.")
+                        break
+                    else:
+                        if(day.weekday()==5):
+                            end = time.fromisoformat('12:00')
+                        else:
+                            end = time.fromisoformat('17:15')
+                        
+                        newBlock=Block(
+                            cvs = CVS.objects.get(name=cvsName),
+                            duration = duration,
+                            startDate = day,
+                            startHour = time.fromisoformat('07:45'),
+                            endDate = day,
+                            endHour = end,
+                            comment = _comment,
+                            scheduledBy = Profile.objects.get(user=request.user)
+                        )
+                        newBlock.save()
+                        messages.success(request,"Se ha agendado correctamente el bloqueo en CVS: "+cvsName+" el día "+day.strftime("%d/%m/%Y")+" a las 7:45am")
+
+                day = day + timedelta(days=1)
+                print(day)
+            return redirect('see_schedules')
+
+        
+        #then we have to see what we are going to do with the turns assigned in this dates and hours
+
+        
+
+    return redirect('see_schedules')
+
+#---------- methods for users -------------------#
 
 @login_required(login_url='')
 def create_user(request):
@@ -129,187 +315,247 @@ def delete_user(request):
     context={'users':users,'role':getRole(request)}
     return render(request,template_name="0-1-delete_user.html",context=context)
 
+#---------- methods for excel report -------------------#
+
 @login_required(login_url='')    
 def createReport(request):
-    query = Turn.objects.all()
+    warningPage=redirectInvalidPage(request,[0])
+    if(warningPage):
+        return redirect(warningPage)
+    
+    if request.method == 'POST':
+        cvsList = request.POST.get('cvsList')
+        cvsList = cvsList[1:-1]
+        cvsList = cvsList.replace("'","")
+        cvsList = cvsList.split(", ")
+        initialDate = date.fromisoformat(request.POST.get('initialDate'))
+        finalDate = date.fromisoformat(request.POST.get('finalDate'))
+
+        query = Turn.objects.filter(cvs__name__in=cvsList).filter(date__gte=initialDate).filter(date__lte=finalDate).order_by('cvs','date','hour')
+        
+    else:
+        messages.error(request,"No puedes acceder a este apartado sin haber llenado la información del reporte")
+        return redirect('reports')   
+
+
     workBook = Workbook()
     workSheet = workBook.active
     workSheet.title = 'Hoja1' #Change name of first sheet
 
     
     #Title of the doc
-    workSheet['A2'] = 'REPORTE MONTAJE Y BALANCEO'
-    workSheet['A2'].font = Font(name='Arial', size=12, bold=True, color='F79646')
-    workSheet['A2'].alignment = Alignment(horizontal="center", vertical="center")
-    workSheet.merge_cells('A2:E2')
+    workSheet['B2'] = 'REPORTE MONTAJE Y BALANCEO'
+    workSheet['B2'].font = Font(name='Arial', size=12, bold=True, color='F87910')
+    workSheet['B2'].alignment = Alignment(horizontal="left", vertical="center")
+    workSheet.merge_cells('B2:D2')
+
+    workSheet['B3'] = 'Kairos Logistics'
+    workSheet['B3'].font = Font(name='Arial', size=12, bold=True, color='CC6600')
+    workSheet['B3'].alignment = Alignment(horizontal="left", vertical="center")
+    workSheet.merge_cells('B3:D3')
+
 
     #Create first row of the table with the data
-    workSheet['B4'] = 'Fecha del servicio'
-    workSheet['B4'].font = Font(name='Arial', size=10, bold=True)
-    workSheet['B4'].alignment = Alignment(horizontal="center", vertical="center")
-    workSheet['B4'].border = Border(left=Side(border_style="thin"), right=Side(border_style="thin"), top=Side(border_style="thin"), bottom=Side(border_style="thin"))
+    workSheet['B5'] = 'Fecha del servicio'
+    workSheet['B5'].font = Font(name='Arial', size=10, bold=True, color='FFFFFF')
+    workSheet['B5'].alignment = Alignment(horizontal="center", vertical="center")
+    workSheet['B5'].border = Border(left=Side(border_style="thin"), right=Side(border_style="thin"), top=Side(border_style="thin"), bottom=Side(border_style="thin"))
+    workSheet['B5'].fill = PatternFill(start_color='F87910', end_color='F87910', fill_type="solid")
     workSheet.column_dimensions['B'].width = 19
 
-    workSheet['C4'] = 'Hora del servicio'
-    workSheet['C4'].font = Font(name='Arial', size=10, bold=True)
-    workSheet['C4'].alignment = Alignment(horizontal="center", vertical="center")
-    workSheet['C4'].border = Border(left=Side(border_style="thin"), right=Side(border_style="thin"), top=Side(border_style="thin"), bottom=Side(border_style="thin"))
+    workSheet['C5'] = 'Hora del servicio'
+    workSheet['C5'].font = Font(name='Arial', size=10, bold=True, color='FFFFFF')
+    workSheet['C5'].alignment = Alignment(horizontal="center", vertical="center")
+    workSheet['C5'].border = Border(left=Side(border_style="thin"), right=Side(border_style="thin"), top=Side(border_style="thin"), bottom=Side(border_style="thin"))
+    workSheet['C5'].fill = PatternFill(start_color='F87910', end_color='F87910', fill_type="solid")
     workSheet.column_dimensions['C'].width = 18
 
-    workSheet['D4'] = 'CVS'
-    workSheet['D4'].font = Font(name='Arial', size=10, bold=True)
-    workSheet['D4'].alignment = Alignment(horizontal="center", vertical="center")
-    workSheet['D4'].border = Border(left=Side(border_style="thin"), right=Side(border_style="thin"), top=Side(border_style="thin"), bottom=Side(border_style="thin"))
+    workSheet['D5'] = 'CVS'
+    workSheet['D5'].font = Font(name='Arial', size=10, bold=True, color='FFFFFF')
+    workSheet['D5'].alignment = Alignment(horizontal="center", vertical="center")
+    workSheet['D5'].border = Border(left=Side(border_style="thin"), right=Side(border_style="thin"), top=Side(border_style="thin"), bottom=Side(border_style="thin"))
+    workSheet['D5'].fill = PatternFill(start_color='F87910', end_color='F87910', fill_type="solid")
     workSheet.column_dimensions['D'].width = 17
 
-    workSheet['E4'] = 'Número de factura'
-    workSheet['E4'].font = Font(name='Arial', size=10, bold=True)
-    workSheet['E4'].alignment = Alignment(horizontal="center", vertical="center")
-    workSheet['E4'].border = Border(left=Side(border_style="thin"), right=Side(border_style="thin"), top=Side(border_style="thin"), bottom=Side(border_style="thin"))
+    workSheet['E5'] = 'Número de factura'
+    workSheet['E5'].font = Font(name='Arial', size=10, bold=True, color='FFFFFF')
+    workSheet['E5'].alignment = Alignment(horizontal="center", vertical="center")
+    workSheet['E5'].border = Border(left=Side(border_style="thin"), right=Side(border_style="thin"), top=Side(border_style="thin"), bottom=Side(border_style="thin"))
+    workSheet['E5'].fill = PatternFill(start_color='F87910', end_color='F87910', fill_type="solid")
     workSheet.column_dimensions['E'].width = 19.30
 
-    workSheet['F4'] = 'Cédula del cliente'
-    workSheet['F4'].font = Font(name='Arial', size=10, bold=True)
-    workSheet['F4'].alignment = Alignment(horizontal="center", vertical="center")
-    workSheet['F4'].border = Border(left=Side(border_style="thin"), right=Side(border_style="thin"), top=Side(border_style="thin"), bottom=Side(border_style="thin"))
+    workSheet['F5'] = 'Cédula del cliente'
+    workSheet['F5'].font = Font(name='Arial', size=10, bold=True, color='FFFFFF')
+    workSheet['F5'].alignment = Alignment(horizontal="center", vertical="center")
+    workSheet['F5'].border = Border(left=Side(border_style="thin"), right=Side(border_style="thin"), top=Side(border_style="thin"), bottom=Side(border_style="thin"))
+    workSheet['F5'].fill = PatternFill(start_color='F87910', end_color='F87910', fill_type="solid")
     workSheet.column_dimensions['F'].width = 19
 
-    workSheet['G4'] = 'Nombre del cliente'
-    workSheet['G4'].font = Font(name='Arial', size=10, bold=True)
-    workSheet['G4'].alignment = Alignment(horizontal="center", vertical="center")
-    workSheet['G4'].border = Border(left=Side(border_style="thin"), right=Side(border_style="thin"), top=Side(border_style="thin"), bottom=Side(border_style="thin"))
+    workSheet['G5'] = 'Nombre del cliente'
+    workSheet['G5'].font = Font(name='Arial', size=10, bold=True, color='FFFFFF')
+    workSheet['G5'].alignment = Alignment(horizontal="center", vertical="center")
+    workSheet['G5'].border = Border(left=Side(border_style="thin"), right=Side(border_style="thin"), top=Side(border_style="thin"), bottom=Side(border_style="thin"))
+    workSheet['G5'].fill = PatternFill(start_color='F87910', end_color='F87910', fill_type="solid")
     workSheet.column_dimensions['G'].width = 19.73
 
-    workSheet['H4'] = 'Teléfono del cliente'
-    workSheet['H4'].font = Font(name='Arial', size=10, bold=True)
-    workSheet['H4'].alignment = Alignment(horizontal="center", vertical="center")
-    workSheet['H4'].border = Border(left=Side(border_style="thin"), right=Side(border_style="thin"), top=Side(border_style="thin"), bottom=Side(border_style="thin"))
+    workSheet['H5'] = 'Teléfono del cliente'
+    workSheet['H5'].font = Font(name='Arial', size=10, bold=True, color='FFFFFF')
+    workSheet['H5'].alignment = Alignment(horizontal="center", vertical="center")
+    workSheet['H5'].border = Border(left=Side(border_style="thin"), right=Side(border_style="thin"), top=Side(border_style="thin"), bottom=Side(border_style="thin"))
+    workSheet['H5'].fill = PatternFill(start_color='F87910', end_color='F87910', fill_type="solid")
     workSheet.column_dimensions['H'].width = 20.58
 
-    workSheet['I4'] = 'Servicio prestado'
-    workSheet['I4'].font = Font(name='Arial', size=10, bold=True)
-    workSheet['I4'].alignment = Alignment(horizontal="center", vertical="center")
-    workSheet['I4'].border = Border(left=Side(border_style="thin"), right=Side(border_style="thin"), top=Side(border_style="thin"), bottom=Side(border_style="thin"))
+    workSheet['I5'] = 'Servicio prestado'
+    workSheet['I5'].font = Font(name='Arial', size=10, bold=True, color='FFFFFF')
+    workSheet['I5'].alignment = Alignment(horizontal="center", vertical="center")
+    workSheet['I5'].border = Border(left=Side(border_style="thin"), right=Side(border_style="thin"), top=Side(border_style="thin"), bottom=Side(border_style="thin"))
+    workSheet['I5'].fill = PatternFill(start_color='F87910', end_color='F87910', fill_type="solid")
     workSheet.column_dimensions['I'].width = 18.30
 
-    workSheet['J4'] = 'Comentarios del servicio'
-    workSheet['J4'].font = Font(name='Arial', size=10, bold=True)
-    workSheet['J4'].alignment = Alignment(horizontal="center", vertical="center")
-    workSheet['J4'].border = Border(left=Side(border_style="thin"), right=Side(border_style="thin"), top=Side(border_style="thin"), bottom=Side(border_style="thin"))
+    workSheet['J5'] = 'Comentarios del servicio'
+    workSheet['J5'].font = Font(name='Arial', size=10, bold=True, color='FFFFFF')
+    workSheet['J5'].alignment = Alignment(horizontal="center", vertical="center")
+    workSheet['J5'].border = Border(left=Side(border_style="thin"), right=Side(border_style="thin"), top=Side(border_style="thin"), bottom=Side(border_style="thin"))
+    workSheet['J5'].fill = PatternFill(start_color='F87910', end_color='F87910', fill_type="solid")
     workSheet.column_dimensions['J'].width = 25
 
-    workSheet['K4'] = 'Tipo de llanta'
-    workSheet['K4'].font = Font(name='Arial', size=10, bold=True)
-    workSheet['K4'].alignment = Alignment(horizontal="center", vertical="center")
-    workSheet['K4'].border = Border(left=Side(border_style="thin"), right=Side(border_style="thin"), top=Side(border_style="thin"), bottom=Side(border_style="thin"))
+    workSheet['K5'] = 'Tipo de llanta'
+    workSheet['K5'].font = Font(name='Arial', size=10, bold=True, color='FFFFFF')
+    workSheet['K5'].alignment = Alignment(horizontal="center", vertical="center")
+    workSheet['K5'].border = Border(left=Side(border_style="thin"), right=Side(border_style="thin"), top=Side(border_style="thin"), bottom=Side(border_style="thin"))
+    workSheet['K5'].fill = PatternFill(start_color='F87910', end_color='F87910', fill_type="solid")
     workSheet.column_dimensions['K'].width = 15
 
-    workSheet['L4'] = 'Cantidad de llantas'
-    workSheet['L4'].font = Font(name='Arial', size=10, bold=True)
-    workSheet['L4'].alignment = Alignment(horizontal="center", vertical="center")
-    workSheet['L4'].border = Border(left=Side(border_style="thin"), right=Side(border_style="thin"), top=Side(border_style="thin"), bottom=Side(border_style="thin"))
+    workSheet['L5'] = 'Cantidad de llantas'
+    workSheet['L5'].font = Font(name='Arial', size=10, bold=True, color='FFFFFF')
+    workSheet['L5'].alignment = Alignment(horizontal="center", vertical="center")
+    workSheet['L5'].border = Border(left=Side(border_style="thin"), right=Side(border_style="thin"), top=Side(border_style="thin"), bottom=Side(border_style="thin"))
+    workSheet['L5'].fill = PatternFill(start_color='F87910', end_color='F87910', fill_type="solid")
     workSheet.column_dimensions['L'].width = 20
 
-    workSheet['M4'] = '¿Hubo rotación?'
-    workSheet['M4'].font = Font(name='Arial', size=10, bold=True)
-    workSheet['M4'].alignment = Alignment(horizontal="center", vertical="center")
-    workSheet['M4'].border = Border(left=Side(border_style="thin"), right=Side(border_style="thin"), top=Side(border_style="thin"), bottom=Side(border_style="thin"))
+    workSheet['M5'] = '¿Hubo rotación?'
+    workSheet['M5'].font = Font(name='Arial', size=10, bold=True, color='FFFFFF')
+    workSheet['M5'].alignment = Alignment(horizontal="center", vertical="center")
+    workSheet['M5'].border = Border(left=Side(border_style="thin"), right=Side(border_style="thin"), top=Side(border_style="thin"), bottom=Side(border_style="thin"))
+    workSheet['M5'].fill = PatternFill(start_color='F87910', end_color='F87910', fill_type="solid")
     workSheet.column_dimensions['M'].width = 17.45
 
-    workSheet['N4'] = 'Cantidad de llantas rotadas'
-    workSheet['N4'].font = Font(name='Arial', size=10, bold=True)
-    workSheet['N4'].alignment = Alignment(horizontal="center", vertical="center")
-    workSheet['N4'].border = Border(left=Side(border_style="thin"), right=Side(border_style="thin"), top=Side(border_style="thin"), bottom=Side(border_style="thin"))
+    workSheet['N5'] = 'Cantidad de llantas rotadas'
+    workSheet['N5'].font = Font(name='Arial', size=10, bold=True, color='FFFFFF')
+    workSheet['N5'].alignment = Alignment(horizontal="center", vertical="center")
+    workSheet['N5'].border = Border(left=Side(border_style="thin"), right=Side(border_style="thin"), top=Side(border_style="thin"), bottom=Side(border_style="thin"))
+    workSheet['N5'].fill = PatternFill(start_color='F87910', end_color='F87910', fill_type="solid")
     workSheet.column_dimensions['N'].width = 27.45
 
-    workSheet['O4'] = 'Duración del servicio'
-    workSheet['O4'].font = Font(name='Arial', size=10, bold=True)
-    workSheet['O4'].alignment = Alignment(horizontal="center", vertical="center")
-    workSheet['O4'].border = Border(left=Side(border_style="thin"), right=Side(border_style="thin"), top=Side(border_style="thin"), bottom=Side(border_style="thin"))
+    workSheet['O5'] = 'Duración del servicio'
+    workSheet['O5'].font = Font(name='Arial', size=10, bold=True, color='FFFFFF')
+    workSheet['O5'].alignment = Alignment(horizontal="center", vertical="center")
+    workSheet['O5'].border = Border(left=Side(border_style="thin"), right=Side(border_style="thin"), top=Side(border_style="thin"), bottom=Side(border_style="thin"))
+    workSheet['O5'].fill = PatternFill(start_color='F87910', end_color='F87910', fill_type="solid")
     workSheet.column_dimensions['O'].width = 21.60
 
-    workSheet['P4'] = 'Agendado por'
-    workSheet['P4'].font = Font(name='Arial', size=10, bold=True)
-    workSheet['P4'].alignment = Alignment(horizontal="center", vertical="center")
-    workSheet['P4'].border = Border(left=Side(border_style="thin"), right=Side(border_style="thin"), top=Side(border_style="thin"), bottom=Side(border_style="thin"))
+    workSheet['P5'] = 'Agendado por'
+    workSheet['P5'].font = Font(name='Arial', size=10, bold=True, color='FFFFFF')
+    workSheet['P5'].alignment = Alignment(horizontal="center", vertical="center")
+    workSheet['P5'].border = Border(left=Side(border_style="thin"), right=Side(border_style="thin"), top=Side(border_style="thin"), bottom=Side(border_style="thin"))
+    workSheet['P5'].fill = PatternFill(start_color='F87910', end_color='F87910', fill_type="solid")
     workSheet.column_dimensions['P'].width = 16
 
-    workSheet['Q4'] = 'Fecha agendamiento'
-    workSheet['Q4'].font = Font(name='Arial', size=10, bold=True)
-    workSheet['Q4'].alignment = Alignment(horizontal="center", vertical="center")
-    workSheet['Q4'].border = Border(left=Side(border_style="thin"), right=Side(border_style="thin"), top=Side(border_style="thin"), bottom=Side(border_style="thin"))
+    workSheet['Q5'] = 'Fecha agendamiento'
+    workSheet['Q5'].font = Font(name='Arial', size=10, bold=True, color='FFFFFF')
+    workSheet['Q5'].alignment = Alignment(horizontal="center", vertical="center")
+    workSheet['Q5'].border = Border(left=Side(border_style="thin"), right=Side(border_style="thin"), top=Side(border_style="thin"), bottom=Side(border_style="thin"))
+    workSheet['Q5'].fill = PatternFill(start_color='F87910', end_color='F87910', fill_type="solid")
     workSheet.column_dimensions['Q'].width = 21.72
 
-    workSheet['R4'] = 'Modificado por'
-    workSheet['R4'].font = Font(name='Arial', size=10, bold=True)
-    workSheet['R4'].alignment = Alignment(horizontal="center", vertical="center")
-    workSheet['R4'].border = Border(left=Side(border_style="thin"), right=Side(border_style="thin"), top=Side(border_style="thin"), bottom=Side(border_style="thin"))
+    workSheet['R5'] = 'Modificado por'
+    workSheet['R5'].font = Font(name='Arial', size=10, bold=True, color='FFFFFF')
+    workSheet['R5'].alignment = Alignment(horizontal="center", vertical="center")
+    workSheet['R5'].border = Border(left=Side(border_style="thin"), right=Side(border_style="thin"), top=Side(border_style="thin"), bottom=Side(border_style="thin"))
+    workSheet['R5'].fill = PatternFill(start_color='F87910', end_color='F87910', fill_type="solid")
     workSheet.column_dimensions['R'].width = 16
 
-    workSheet['S4'] = 'Fecha de modificación'
-    workSheet['S4'].font = Font(name='Arial', size=10, bold=True)
-    workSheet['S4'].alignment = Alignment(horizontal="center", vertical="center")
-    workSheet['S4'].border = Border(left=Side(border_style="thin"), right=Side(border_style="thin"), top=Side(border_style="thin"), bottom=Side(border_style="thin"))
+    workSheet['S5'] = 'Fecha de modificación'
+    workSheet['S5'].font = Font(name='Arial', size=10, bold=True, color='FFFFFF')
+    workSheet['S5'].alignment = Alignment(horizontal="center", vertical="center")
+    workSheet['S5'].border = Border(left=Side(border_style="thin"), right=Side(border_style="thin"), top=Side(border_style="thin"), bottom=Side(border_style="thin"))
+    workSheet['S5'].fill = PatternFill(start_color='F87910', end_color='F87910', fill_type="solid")
     workSheet.column_dimensions['S'].width = 23.30
 
-    rowController = 5 #to keep track of the row we will write on
+    rowController = 6 #to keep track of the row we will write on
     for q in query:
         #Fill in the data of the table
         workSheet.cell(row=rowController, column=2).alignment = Alignment(horizontal="center", vertical="center")
         workSheet.cell(row=rowController, column=2).font = Font(name='Arial', size=10)
-        workSheet.cell(row=rowController, column=2).value = q.date.isoformat()
+        workSheet.cell(row=rowController, column=2).border = Border(left=Side(border_style="thin"), right=Side(border_style="thin"), top=Side(border_style="thin"), bottom=Side(border_style="thin"))
+        workSheet.cell(row=rowController, column=2).value = q.date
 
         workSheet.cell(row=rowController, column=3).alignment = Alignment(horizontal="center", vertical="center")
         workSheet.cell(row=rowController, column=3).font = Font(name='Arial', size=10)
-        workSheet.cell(row=rowController, column=3).value = q.hour.isoformat('minutes')
+        workSheet.cell(row=rowController, column=3).border = Border(left=Side(border_style="thin"), right=Side(border_style="thin"), top=Side(border_style="thin"), bottom=Side(border_style="thin"))
+        workSheet.cell(row=rowController, column=3).value = q.hour
 
         workSheet.cell(row=rowController, column=4).alignment = Alignment(horizontal="center", vertical="center")
         workSheet.cell(row=rowController, column=4).font = Font(name='Arial', size=10)
+        workSheet.cell(row=rowController, column=4).border = Border(left=Side(border_style="thin"), right=Side(border_style="thin"), top=Side(border_style="thin"), bottom=Side(border_style="thin"))
         workSheet.cell(row=rowController, column=4).value = q.cvs.name
 
         workSheet.cell(row=rowController, column=5).alignment = Alignment(horizontal="center", vertical="center")
         workSheet.cell(row=rowController, column=5).font = Font(name='Arial', size=10)
+        workSheet.cell(row=rowController, column=5).border = Border(left=Side(border_style="thin"), right=Side(border_style="thin"), top=Side(border_style="thin"), bottom=Side(border_style="thin"))
         workSheet.cell(row=rowController, column=5).value = q.bill
 
         workSheet.cell(row=rowController, column=6).alignment = Alignment(horizontal="center", vertical="center")
         workSheet.cell(row=rowController, column=6).font = Font(name='Arial', size=10)
+        workSheet.cell(row=rowController, column=6).border = Border(left=Side(border_style="thin"), right=Side(border_style="thin"), top=Side(border_style="thin"), bottom=Side(border_style="thin"))
         workSheet.cell(row=rowController, column=6).value = q.idCustomer
 
         workSheet.cell(row=rowController, column=7).alignment = Alignment(horizontal="center", vertical="center")
         workSheet.cell(row=rowController, column=7).font = Font(name='Arial', size=10)
+        workSheet.cell(row=rowController, column=7).border = Border(left=Side(border_style="thin"), right=Side(border_style="thin"), top=Side(border_style="thin"), bottom=Side(border_style="thin"))
         workSheet.cell(row=rowController, column=7).value = q.nameCustomer
 
         workSheet.cell(row=rowController, column=8).alignment = Alignment(horizontal="center", vertical="center")
         workSheet.cell(row=rowController, column=8).font = Font(name='Arial', size=10)
+        workSheet.cell(row=rowController, column=8).border = Border(left=Side(border_style="thin"), right=Side(border_style="thin"), top=Side(border_style="thin"), bottom=Side(border_style="thin"))
         workSheet.cell(row=rowController, column=8).value = q.telCustomer
 
         workSheet.cell(row=rowController, column=9).alignment = Alignment(horizontal="center", vertical="center")
         workSheet.cell(row=rowController, column=9).font = Font(name='Arial', size=10)
+        workSheet.cell(row=rowController, column=9).border = Border(left=Side(border_style="thin"), right=Side(border_style="thin"), top=Side(border_style="thin"), bottom=Side(border_style="thin"))
         if(q.done is True):
             workSheet.cell(row=rowController, column=9).value = "Si"
-        else:
+        elif(q.done is False):
             workSheet.cell(row=rowController, column=9).value = "No"
-        
+        else:
+            workSheet.cell(row=rowController, column=9).value = "-"
 
         workSheet.cell(row=rowController, column=10).alignment = Alignment(horizontal="center", vertical="center")
         workSheet.cell(row=rowController, column=10).font = Font(name='Arial', size=10)
-        workSheet.cell(row=rowController, column=10).value = q.comment
+        workSheet.cell(row=rowController, column=10).border = Border(left=Side(border_style="thin"), right=Side(border_style="thin"), top=Side(border_style="thin"), bottom=Side(border_style="thin"))
+        if(q.comment):
+            workSheet.cell(row=rowController, column=10).value = q.comment
+        else:
+            workSheet.cell(row=rowController, column=10).value = "-"
 
         workSheet.cell(row=rowController, column=11).alignment = Alignment(horizontal="center", vertical="center")
         workSheet.cell(row=rowController, column=11).font = Font(name='Arial', size=10)
+        workSheet.cell(row=rowController, column=11).border = Border(left=Side(border_style="thin"), right=Side(border_style="thin"), top=Side(border_style="thin"), bottom=Side(border_style="thin"))
         if(q.typeTire == 1):
-            workSheet.cell(row=rowController, column=11).value = "Carro"
+            workSheet.cell(row=rowController, column=11).value = "Automóvil"
         elif(q.typeTire == 2):
-            workSheet.cell(row=rowController, column=11).value = "Camión"
-        elif(q.typeTire == 3):
             workSheet.cell(row=rowController, column=11).value = "Camioneta"
+        elif(q.typeTire == 3):
+            workSheet.cell(row=rowController, column=11).value = "Camión"
 
         workSheet.cell(row=rowController, column=12).alignment = Alignment(horizontal="center", vertical="center")
         workSheet.cell(row=rowController, column=12).font = Font(name='Arial', size=10)
+        workSheet.cell(row=rowController, column=12).border = Border(left=Side(border_style="thin"), right=Side(border_style="thin"), top=Side(border_style="thin"), bottom=Side(border_style="thin"))
         workSheet.cell(row=rowController, column=12).value = q.quantity
 
         workSheet.cell(row=rowController, column=13).alignment = Alignment(horizontal="center", vertical="center")
         workSheet.cell(row=rowController, column=13).font = Font(name='Arial', size=10)
+        workSheet.cell(row=rowController, column=13).border = Border(left=Side(border_style="thin"), right=Side(border_style="thin"), top=Side(border_style="thin"), bottom=Side(border_style="thin"))
         if(q.rotation is True):
             workSheet.cell(row=rowController, column=13).value = "Si"
         else:
@@ -317,22 +563,27 @@ def createReport(request):
 
         workSheet.cell(row=rowController, column=14).alignment = Alignment(horizontal="center", vertical="center")
         workSheet.cell(row=rowController, column=14).font = Font(name='Arial', size=10)
+        workSheet.cell(row=rowController, column=14).border = Border(left=Side(border_style="thin"), right=Side(border_style="thin"), top=Side(border_style="thin"), bottom=Side(border_style="thin"))
         workSheet.cell(row=rowController, column=14).value = q.quantityRotate
 
         workSheet.cell(row=rowController, column=15).alignment = Alignment(horizontal="center", vertical="center")
         workSheet.cell(row=rowController, column=15).font = Font(name='Arial', size=10)
+        workSheet.cell(row=rowController, column=15).border = Border(left=Side(border_style="thin"), right=Side(border_style="thin"), top=Side(border_style="thin"), bottom=Side(border_style="thin"))
         workSheet.cell(row=rowController, column=15).value = str(q.duration) + " min."
 
         workSheet.cell(row=rowController, column=16).alignment = Alignment(horizontal="center", vertical="center")
         workSheet.cell(row=rowController, column=16).font = Font(name='Arial', size=10)
+        workSheet.cell(row=rowController, column=16).border = Border(left=Side(border_style="thin"), right=Side(border_style="thin"), top=Side(border_style="thin"), bottom=Side(border_style="thin"))
         workSheet.cell(row=rowController, column=16).value = q.scheduledBy.user.username
 
         workSheet.cell(row=rowController, column=17).alignment = Alignment(horizontal="center", vertical="center")
         workSheet.cell(row=rowController, column=17).font = Font(name='Arial', size=10)
-        workSheet.cell(row=rowController, column=17).value = str(q.dateScheduled.date().isoformat()) + ", " + str(q.dateScheduled.time().isoformat('minutes'))
+        workSheet.cell(row=rowController, column=17).border = Border(left=Side(border_style="thin"), right=Side(border_style="thin"), top=Side(border_style="thin"), bottom=Side(border_style="thin"))
+        workSheet.cell(row=rowController, column=17).value = str(q.dateScheduled.date()) + ", " + str(q.dateScheduled.time().isoformat('minutes'))
 
         workSheet.cell(row=rowController, column=18).alignment = Alignment(horizontal="center", vertical="center")
         workSheet.cell(row=rowController, column=18).font = Font(name='Arial', size=10)
+        workSheet.cell(row=rowController, column=18).border = Border(left=Side(border_style="thin"), right=Side(border_style="thin"), top=Side(border_style="thin"), bottom=Side(border_style="thin"))
         if(q.modifiedBy is None):
             workSheet.cell(row=rowController, column=18).value = ""
         else:
@@ -340,10 +591,11 @@ def createReport(request):
 
         workSheet.cell(row=rowController, column=19).alignment = Alignment(horizontal="center", vertical="center")
         workSheet.cell(row=rowController, column=19).font = Font(name='Arial', size=10)
+        workSheet.cell(row=rowController, column=19).border = Border(left=Side(border_style="thin"), right=Side(border_style="thin"), top=Side(border_style="thin"), bottom=Side(border_style="thin"))
         if(q.dateModified is None):
             workSheet.cell(row=rowController, column=19).value = ""
         else:
-            workSheet.cell(row=rowController, column=19).value = str(q.dateModified.date().isoformat()) + ", " + str(q.dateModified.time().isoformat('minutes'))
+            workSheet.cell(row=rowController, column=19).value = str(q.dateModified.date()) + ", " + str(q.dateModified.time().isoformat('minutes'))
 
         rowController += 1
 
@@ -356,8 +608,29 @@ def createReport(request):
    
 @login_required(login_url='')
 def reports(request):    
-    cvsList = CVS.objects.all()
-    return render(request,template_name="0-reports.html", context={'role':getRole(request), 'cvsList':cvsList})
+    warningPage=redirectInvalidPage(request,[0])
+    if(warningPage):
+        return redirect(warningPage)
+
+    allCvs = CVS.objects.all()
+
+    if request.method == 'POST':
+        cvsList = request.POST.getlist('cvsOptions')
+        initialDate = date.fromisoformat(request.POST.get('dateS'))
+        finalDate = date.fromisoformat(request.POST.get('dateE'))
+
+        if not(initialDate and finalDate and cvsList):
+            messages.warning(request,"Recuerda que debes llenar todos los campos del formulario para el reporte")
+            redirect('reports')
+            preview = False
+
+        preview = True
+        query = Turn.objects.filter(cvs__name__in=cvsList).filter(date__gte=initialDate).filter(date__lte=finalDate).order_by('cvs','date','hour')
+
+        return render(request,template_name="0-reports.html", context={'role':getRole(request), 'allCvs':allCvs, 'preview':preview, 'cvsList':cvsList, 'initialDate':initialDate.isoformat(), 'finalDate':finalDate.isoformat(),'query':query})
+    
+    
+    return render(request,template_name="0-reports.html", context={'role':getRole(request), 'allCvs':allCvs})
 
 #---------- auxiliar methods for see_schedules-------------------#
 def delta2time(delta):
@@ -523,21 +796,54 @@ def toSee_schedules(cvsName):
         sc_days[contDay].append(newSC_event)
 
         #we get actualDate's agenda
-        agenda=Turn.objects.filter(date=actualDate).filter(cvs__name=cvsName).order_by("hour")
+        turns = list(Turn.objects.filter(date=actualDate).filter(cvs__name=cvsName).order_by("hour"))
+        blocks = list(Block.objects.filter(startDate=actualDate).filter(cvs__name=cvsName).order_by("startHour"))
+        agenda=[]
+        index = len(turns) + len(blocks)
+        i = 0
+        while (i<index):
+            if(len(turns)):
+                if(len(blocks)):
+                    turnHour = timedelta(hours=turns[0].hour.hour, minutes=turns[0].hour.minute)
+                    blockHour = timedelta(hours=blocks[0].startHour.hour, minutes=blocks[0].startHour.minute)
+                    if( turnHour > blockHour):
+                        agenda.append(blocks.pop(0))  
+                    else:
+                        agenda.append(turns.pop(0))
+                else:
+                    agenda.append(turns.pop(0))
+            else:
+                agenda.append(blocks.pop(0))
+            i+=1
 
         for event in agenda:
-            beg=timedelta(hours=event.hour.hour,minutes=event.hour.minute)
-            fillFree(ti,beg,sc_days[contDay])
+            if(type(event) == type(Turn())):
+                beg=timedelta(hours=event.hour.hour,minutes=event.hour.minute)
+                fillFree(ti,beg,sc_days[contDay])
 
-            #finally we add the service
-            finish=timedelta(minutes=event.duration)
-            finish+=beg
-            debugEvent(False,beg,finish)
+                #finally we add the service
+                finish=timedelta(minutes=event.duration)
+                finish+=beg
+                debugEvent(False,beg,finish)
 
-            newSC_event=["sc-event turn",deltas2line(beg,finish),"",delta2time(beg)+" - "+delta2time(finish), processData(event)]
-            sc_days[contDay].append(newSC_event)
+                newSC_event=["sc-event turn",deltas2line(beg,finish),"",delta2time(beg)+" - "+delta2time(finish), processData(event)]
+                sc_days[contDay].append(newSC_event)
 
-            ti=finish
+                ti=finish
+            else:
+                beg=timedelta(hours=event.startHour.hour,minutes=event.startHour.minute)
+                fillFree(ti,beg,sc_days[contDay])
+
+                #finally we add the service
+                finish=timedelta(minutes=event.duration)
+                finish+=beg
+                debugEvent(False,beg,finish)
+
+                newSC_event=["sc-event block",deltas2line(beg,finish)]
+                sc_days[contDay].append(newSC_event)
+
+                ti=finish
+
 
         #day ends at...
         # if sturday at 12:00m 
@@ -799,7 +1105,7 @@ def select_turns(request):
     
 #---------- auxiliar methods for confirm asignment-------------------#
 @login_required(login_url='')
-def valDateHour(request,cvs,dateF,hour,duration,modAs,exclude):#mod=0,As=1
+def valDateHour(request,cvs,dateF,hour,duration,modAs,exclude, block):#mod=0,As=1
     problems=False
     if(modAs):
         dateTurns=Turn.objects.filter(cvs__name=cvs).filter(date=dateF).order_by('hour')
@@ -831,18 +1137,19 @@ def valDateHour(request,cvs,dateF,hour,duration,modAs,exclude):#mod=0,As=1
     begHour=timedelta(hours=hour.hour,minutes=hour.minute)
     endHour=begHour+timedelta(minutes=duration)
 
-    #turn must not be earlier than 7:45 nor later than 17:15
-    if(begHour<timedelta(hours=7,minutes=45)):
-        problems=True
-        messages.error(request,"El servicio no puede comenzar antes del horario laboral (7:45am)")
-    if(endHour>timedelta(hours=17,minutes=15)):
-        problems=True
-        messages.error(request,"El servicio no puede terminar luego del horario laboral (5:15pm)")
-    
-    #turn must not end later that midday on saturdays
-    if(dateF.weekday()==5 and endHour>timedelta(hours=12)):
-        problems=True
-        messages.error(request,"El servicio no puede terminar luego del horario laboral de los sábados (12:00pm)")
+    if not(block):
+        #turn must not be earlier than 7:45 nor later than 17:15
+        if(begHour<timedelta(hours=7,minutes=45)):
+            problems=True
+            messages.error(request,"El servicio no puede comenzar antes del horario laboral (7:45am)")
+        if(endHour>timedelta(hours=17,minutes=15)):
+            problems=True
+            messages.error(request,"El servicio no puede terminar luego del horario laboral (5:15pm)")
+        
+        #turn must not end later that midday on saturdays
+        if(dateF.weekday()==5 and endHour>timedelta(hours=12)):
+            problems=True
+            messages.error(request,"El servicio no puede terminar luego del horario laboral de los sábados (12:00pm)")
 
     #turn must not be scheduled on sundays
     if(dateF.weekday()==6):
@@ -876,6 +1183,47 @@ def valDateHour(request,cvs,dateF,hour,duration,modAs,exclude):#mod=0,As=1
                 break
 
     return problems
+
+@login_required(login_url='')
+def valBlocks(request, cvs, dateF, duration, startHour):
+    problems = False
+    dateBlocks=Block.objects.filter(cvs__name=cvs).filter(startDate=dateF).order_by('startHour')
+    actualBlocks=[]
+    for block in dateBlocks:
+        beg=timedelta(hours=block.startHour.hour,minutes=block.startHour.minute)
+        end=beg+timedelta(minutes=block.duration)
+        actualBlocks.append([beg,end])
+    
+    begHour=timedelta(hours=startHour.hour,minutes=startHour.minute)
+    endHour=begHour+timedelta(minutes=duration)
+    if(len(actualBlocks)):
+        #beg hour is crashing 
+        for block in actualBlocks:
+            if(begHour<block[1]):
+                if(begHour>block[0]):
+                    problems=True
+                    messages.error(request,"El servicio choca con el bloqueo de las "+delta2time(block[0]))
+
+                break
+        #end hour is crashing 
+        actualBlocks.reverse()
+        for block in actualBlocks:
+            if(endHour>block[0]):
+                if(endHour<block[1]):
+                    problems=True
+                    messages.error(request,"El servicio choca con el bloqueo de las "+delta2time(block[0]))
+
+                break
+        #it is something in the middle
+        for turn in actualBlocks:
+            if(endHour>block[1] and begHour<block[0]):
+                problems=True
+                messages.error(request,"El servicio choca con el bloqueo de las "+delta2time(block[0]))
+
+                break
+    
+    return problems
+
 @login_required(login_url='')
 def valBill(request,bill):
     problems=False
@@ -921,7 +1269,8 @@ def confirm_turns(request):
         #data to validate
         dateF=date.fromisoformat(request.POST.get('date'))
         hour=time.fromisoformat(request.POST.get('hour'))
-        flag1=valDateHour(request,cvsName,dateF,hour,int(duration),1,None)
+        flag1=valDateHour(request,cvsName,dateF,hour,int(duration),1,None,False)
+        flag4 = valBlocks(request, cvsName, dateF, int(duration),hour)
         bill=int(request.POST.get('bill'))
         flag2=valBill(request,bill)
         idCustomer=int(request.POST.get('idCustomer'))
@@ -929,7 +1278,7 @@ def confirm_turns(request):
         nameCustomer=request.POST.get('nameCustomer')
         telCustomer=request.POST.get('telCustomer')
 
-        if(flag1 or  flag2 or flag3):
+        if(flag1 or  flag2 or flag3 or flag4):
             minDate=date.today().isoformat()
             if(date.today().weekday==6):
                 maxDate=(date.today()+timedelta(days=8)).isoformat()
@@ -970,6 +1319,8 @@ def confirm_turns(request):
             messages.success(request,"Se ha agendado correctamente el turno en CVS: "+cvsName+" el día "+dateF.strftime("%d/%m/%Y")+" a las "+hour.strftime("%I:%M %p"))
 
             return redirect('see_schedules')
+
+#---------- auxiliar methods for modify turns -------------------#
 
 @login_required(login_url='')
 def modify_schedules(request):
@@ -1110,7 +1461,7 @@ def confirm_modify(request):
     flag1=valBill(request,_bill)
     flag3=valDuration(request,_duration)
     modTurn=Turn.objects.get(id=int(request.POST.get('idTurn')))
-    flag2=valDateHour(request,_cvs,_date,_hour,_duration,0,modTurn.hour)
+    flag2=valDateHour(request,_cvs,_date,_hour,_duration,0,modTurn.hour,False)
     flag4=valId(request,_idCustomer)
     flag5=valQuantity(request,_quantity)
     
@@ -1158,6 +1509,143 @@ def delete_service(request):
         messages.error(request,"No puedes acceder a este apartado sin haber llenado la información inicial del servicio")
         return redirect('modify_schedules')
 
+#---------- auxiliar methods for validate service -------------------#
+
 @login_required(login_url='')
 def validate_service_provided(request):
-    return render(request,template_name="1-validate_service_provided.html")
+    warningPage=redirectInvalidPage(request,[1])
+    if(warningPage):
+        return redirect(warningPage)
+    
+    #we take the name of the admin -> cvsName
+    cvsName=request.user.first_name
+    #events' array (freetime and services) for the context
+    sc_days=toSee_schedules(cvsName)
+    #limit for the date input
+    if(date.today().weekday==6):
+        maxDate=(date.today()+timedelta(days=8)).isoformat()
+    else:
+        maxDate=(date.today()+timedelta(days=7)).isoformat()
+
+    if(request.method=='POST'):
+        dateToSearch=date.fromisoformat(request.POST.get('date'))
+        print(dateToSearch)
+        turns=Turn.objects.filter(date=dateToSearch).filter(cvs__name=cvsName).order_by('hour')
+        listTurns=[]
+        for turn in turns:
+            turnL=[]
+            turnL.append(turn.id)
+            beg=timedelta(hours=turn.hour.hour,minutes=turn.hour.minute)
+            end=beg+timedelta(minutes=turn.duration)
+            turnL.append(delta2time(beg)+" - "+delta2time(end))
+            listTurns.append(turnL)
+        
+        if(listTurns):
+            return render(request,template_name="1-validate_service_provided.html",context={'cvsName':cvsName,'sc_days':sc_days,'maxDate':maxDate,'listTurns':listTurns,'date':dateToSearch.isoformat(),'role':getRole(request)})
+        else:
+            messages.warning(request,"El día accedido no tiene turnos asignados")
+    
+    return render(request,template_name="1-validate_service_provided.html", context={'role':getRole(request),'cvsName':cvsName,'sc_days':sc_days,'maxDate':maxDate})
+
+@login_required(login_url='')
+def validate_turn(request):
+    warningPage=redirectInvalidPage(request,[1])
+    if(warningPage):
+        return redirect(warningPage)
+
+    if(request.POST.get('turn')):
+        turn=Turn.objects.get(id=int(request.POST.get('turn')))
+    else:
+        cvsName=request.user.first_name
+        #get the turn of the cvs
+        turn=Turn.objects.filter(cvs__name=cvsName).filter(bill=int(request.POST.get('bill')))
+
+        if(not len(turn)):
+            messages.warning(request,"No se ha encontrado un servicio con factura: "+request.POST.get('bill')+" en este CVS")
+            return redirect('validate_service_provided')
+        
+        #get the turn from the queryset
+        turn=turn.first()
+    
+    idTurn= turn.id
+    cvsName= turn.cvs.name
+    typeTire= turn.typeTire
+    if(typeTire==1):
+        typeTireName="Automóvil"
+    elif(typeTire==2):
+        typeTireName="Camioneta"
+    elif(typeTire==3):
+        typeTireName="Camión"
+    quantity= turn.quantity
+    if(turn.rotation):
+        rotation="yes"
+    else:
+        rotation=""
+    quantityRotate= turn.quantityRotate
+    duration= turn.duration
+    dateF= turn.date.isoformat()
+    hour= turn.hour.isoformat('minutes')
+    bill= turn.bill
+    idCustomer= turn.idCustomer
+    nameCustomer= turn.nameCustomer
+    telCustomer= turn.telCustomer
+    comment=turn.comment
+    done = turn.done
+    #limit for the date input
+    if(date.today().weekday==6):
+        maxDate=(date.today()+timedelta(days=7)).isoformat()
+    else:
+        maxDate=(date.today()+timedelta(days=7)).isoformat()
+
+    return render(request,template_name="1-validate_turn.html",
+        context={
+        'idTurn':idTurn,
+        'cvsName':cvsName,
+        'typeTire':typeTire,
+        'typeTireName':typeTireName,
+        'quantity':quantity,
+        'rotation':rotation,
+        'quantityRotate':quantityRotate,
+        'duration':duration,
+        'date':dateF,
+        'hour':hour,
+        'bill':bill,
+        'idCustomer':idCustomer,
+        'nameCustomer':nameCustomer,
+        'telCustomer':telCustomer,
+        'comment':comment,
+        'done':done,
+        'maxDate':maxDate,
+        'role':getRole(request)})
+
+@login_required(login_url='')
+def confirm_validation(request):
+    warningPage=redirectInvalidPage(request,[1])
+    if(warningPage):
+        return redirect(warningPage)
+    
+    _cvs= request.POST.get('cvsName')
+    _comment= request.POST.get('comment')
+    if(_comment):
+        _comment=_comment
+    else:
+        _comment=""
+    _newComment= request.POST.get('newComment')
+    _done= request.POST.get('done')
+    if(_done):
+        _done=True
+    else:
+        _done=False
+      
+    _date= date.fromisoformat(request.POST.get('date'))
+    _hour= time.fromisoformat(request.POST.get('hour'))
+
+    modTurn=Turn.objects.get(id=int(request.POST.get('idTurn')))
+    modTurn.done=_done
+    modTurn.modifiedBy=Profile.objects.get(user=request.user)
+    modTurn.dateModified=datetime.now()
+    modTurn.comment=_comment + " - " + _newComment
+
+    modTurn.save()
+    messages.success(request,"Se actualizó correctamente el turno en CVS: "+_cvs+" para el día "+_date.strftime("%d/%m/%Y")+" a las "+_hour.strftime("%I:%M %p"))
+    return redirect('see_schedules')

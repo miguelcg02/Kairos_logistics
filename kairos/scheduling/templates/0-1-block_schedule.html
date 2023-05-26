@@ -1,11 +1,17 @@
 {% extends 'base.html' %}
+{% load static %}
+
+{% block styles %}
+<link rel="stylesheet" href="{% static 'schedules.css'%}">
+<link rel="stylesheet" href="{% static 'sel_mod_turn.css'%}">
+<script src="{% static 'hide.js'%}"></script>
+{% endblock %}
 
 {% block title %}
     Bloquear horarios
 {% endblock %}
 
-<!-- AQUI TOCA ESTABLECER IS SE VA A USAR EL NAVBAR DE MANAGER O DE ADMIN, ASÍ QUE OJO -->
-
+<!-- Selecting navbar -->
 {% block navbar %}
     <!-- IF MANAGER -->
     {% if role == 0 %}
@@ -18,5 +24,103 @@
 {% endblock %}
 
 {% block content %}
+    <div class="full-container">
+        <div class="sc-displayer">
+            <h2>Previsualización del horario</h2>
+            {% if cvsName %} 
+                {% include 'base_schedule.html' %}
+            {% endif %}
+        </div>
+        <div class="form-displayer">
+            <!-- section to select the cvs -->
+            <form style="margin: 2em;" action="{% url 'block_schedule' %}" method="post">
+                {%csrf_token%}
+                <h2>Selección de CVS</h2>
+                <div class="form-floating">
+                    <select class="form-select" id="sc-select" name="cvsName" aria-label="select cvs">
+                        <option selected>{{cvsName}}</option><!--for this item we cannot put accents - or change BBDD-->
+                        {% for cvs in listCVSs %}
+                        <option value="{{cvs}}">{{cvs}}</option>
+                        {% endfor %}
+                    </select>
+                    <label for="sc-select">Visualizando horario de:</label>
+                </div>
+                <div style="display: flex;justify-content: end;">
+                    <button type="submit" class="btn btn-secondary btn-outline-light ">Ver</button>
+                </div>
+            </form>
+            {% if cvsName %} 
+                <div class="form-displayer">
+                    <!-- section to see the calculated time for the service -->
+                    <form style="margin-left:2em; margin-right: 2em;" action="{% url 'block' %}" method="post">
+                        {%csrf_token%}
+                        <h2>Fecha y hora</h2>
+                        <div class="row">
+                            <div class="col-md-6 col-sm-6 col-xs-12">
+                                <div class="form-floating">
+                                    <input class="form-control" type="date" name="startDate" id="startDate" min="{{minDate}}" required>
+                                    <label for="date">Fecha inicial</label>
+                                </div>
+                            </div>
 
+                            <div class="col-md-6 col-sm-6 col-xs-12">
+                                <div class="form-floating">
+                                    <input class="form-control" type="time" name="startHour" id="startHour" min="07:45" max="17:15" required>
+                                    <label for="hour">Hora incial</label>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-6 col-sm-6 col-xs-12">
+                                <div class="form-floating">
+                                    <input class="form-control" type="date" name="finalDate" id="finalDate" min="{{minDate}}" required>
+                                    <label for="date">Fecha final</label>
+                                </div>
+                            </div>
+
+                            <div class="col-md-6 col-sm-6 col-xs-12">
+                                <div class="form-floating">
+                                    <input class="form-control" type="time" name="finalHour" id="finalHour" min="07:45" max="17:15" required>
+                                    <label for="hour">Hora final</label>
+                                </div>
+                            </div>
+                            <input type="hidden" name="cvsName" value="{{cvsName}}">
+                        </div>
+                        
+                        <br><br>
+
+                        <div class="row">
+                            <h2>Explique por qué se está generando el bloqueo</h2>
+                            <textarea class="form-control" type="text" name="comment" id="comment" maxlength="300" required>{{comment}}</textarea>
+                        </div>
+
+                        <!-- start confirm modal -->
+                        <!-- Button trigger modal -->
+                        
+                        <div style="display: flex;justify-content: end;">
+                            <button type="button" class=" btn btn-secondary btn-outline-light " data-bs-toggle="modal" data-bs-target="#staticBackdrop">Continuar</button>
+                        </div>
+                        <!-- Modal -->
+                        <div class="modal fade" id="staticBackdrop" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="staticBackdropLabel" aria-hidden="true">
+                            <div class="modal-dialog modal-dialog-centered">
+                                <div class="modal-content">
+                                    <div class="modal-header">
+                                    <h1 class="modal-title fs-5" id="staticBackdropLabel">Confirmación del bloqueo</h1>
+                                    </div>
+                                    <div class="modal-body">
+                                    <p style="font-weight: bolder;">¿Está seguro que desea confirmar el bloqueo?</p>
+                                    </div>
+                                    <div class="modal-footer">
+                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+                                    <button type="submit" class="btn btn-confirm">Confirmar</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            {% endif %}
+        </div>
+    </div>
 {% endblock %}
