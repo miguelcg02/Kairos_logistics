@@ -79,6 +79,7 @@ def home_operator(request):
 
 #---------- auxiliar methods for block schedule -------------------#
 
+@login_required(login_url='')
 def block_schedule(request):
     warningPage=redirectInvalidPage(request,[0,1])
     if(warningPage):
@@ -100,6 +101,7 @@ def block_schedule(request):
         listCVSs=listCVS('')
     return render(request,template_name="0-1-block_schedule.html", context={'listCVSs':listCVSs,'role':getRole(request)})
 
+@login_required(login_url='')
 def block(request):
     warningPage=redirectInvalidPage(request,[0,1])
     if(warningPage):
@@ -1035,6 +1037,7 @@ def select_turns(request):
         return redirect('asign_turns')
     
 #---------- auxiliar methods for confirm asignment-------------------#
+@login_required(login_url='')
 def valDateHour(request,cvs,dateF,hour,duration,modAs,exclude, block):#mod=0,As=1
     problems=False
     if(modAs):
@@ -1114,6 +1117,7 @@ def valDateHour(request,cvs,dateF,hour,duration,modAs,exclude, block):#mod=0,As=
 
     return problems
 
+@login_required(login_url='')
 def valBlocks(request, cvs, dateF, duration, startHour):
     problems = False
     dateBlocks=Block.objects.filter(cvs__name=cvs).filter(startDate=dateF).order_by('startHour')
@@ -1476,6 +1480,7 @@ def validate_service_provided(request):
     
     return render(request,template_name="1-validate_service_provided.html", context={'role':getRole(request),'cvsName':cvsName,'sc_days':sc_days,'maxDate':maxDate})
 
+@login_required(login_url='')
 def validate_turn(request):
     warningPage=redirectInvalidPage(request,[1])
     if(warningPage):
@@ -1546,6 +1551,7 @@ def validate_turn(request):
         'maxDate':maxDate,
         'role':getRole(request)})
 
+@login_required(login_url='')
 def confirm_validation(request):
     warningPage=redirectInvalidPage(request,[1])
     if(warningPage):
