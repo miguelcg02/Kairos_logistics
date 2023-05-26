@@ -7,6 +7,7 @@ urlpatterns = [
     path('', views.login_page, name='login'),
 
     # FUNCIONALITIES
+    path('change_password/',views.change_password,name='change_password'),
     path('reports/',views.reports,name='reports'),
     path('block_schedule/',views.block_schedule,name='block_schedule'),
     path('create_user/',views.create_user,name='create_user'),

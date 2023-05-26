@@ -1,6 +1,7 @@
 from django.shortcuts import render, redirect
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
+from django.contrib.auth.hashers import check_password
 from .models import *
 from .forms import CreateUserForm
 from django.contrib import messages
@@ -88,6 +89,29 @@ def create_user(request):
             return render(request,template_name="0-1-create_user.html", context={'form': form, 'role':getRole(request)})
 
     return render(request,template_name="0-1-create_user.html", context={'form': form, 'role':getRole(request)})
+
+def change_password(request):
+    if request.method == 'POST':
+        username = request.POST.get('username')
+        password = request.POST.get('current_password')
+        user = authenticate(username=username, password=password)
+
+        if user is not None:
+            new_password1 = request.POST.get('new_password')
+            new_password2 = request.POST.get('confirmation_password')
+            if(new_password1 == new_password2):
+                user.set_password(new_password1)
+                user.save()
+                user.save()
+                messages.success(request, '¡La contraseña fue actualizada exitosamente!')
+                return redirect('login')
+            else:
+                messages.success(request, '¡La nueva contraseña no coincide con la de confirmación, vuelva a intentarlo!')
+                return render(request,template_name="change_password.html")
+        else:
+            messages.success(request, '¡El usuario ingresado no existe!')
+            return render(request,template_name="change_password.html")
+    return render(request,template_name="change_password.html")
 
 @login_required(login_url='')
 def delete_user(request):    
