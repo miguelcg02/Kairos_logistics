@@ -7,11 +7,14 @@
 <!-- AQUI TOCA ESTABLECER IS SE VA A USAR EL NAVBAR DE MANAGER O DE ADMIN, ASÍ QUE OJO -->
 
 {% block navbar %}
-    <!-- IF ES MANEGER -->
-    {% include '0-manager/navbar-manager.html' %} 
-
-    <!-- ELSE IF ES ADMIN -->
-    <!-- include etc etc navbar-damin -->
+    <!-- IF MANAGER -->
+    {% if role == 0 %}
+        {% include '0-manager/navbar-manager.html' %} 
+    {% endif %}
+    <!-- IF ADMIN -->
+    {% if role == 1 %}
+        {% include '1-admin\navbar-admin.html' %} 
+    {% endif %}
 {% endblock %}
 
 {% block content %}
@@ -19,71 +22,62 @@
     <div class="row justify-content-center align-items-center py-5">
         <div class="col-12 col-md-9">
             <div class="text-center">
-                <h2 class="">CREAR USUARIOS DENTRO DE LA APP</h2>
+                <h2 >CREAR USUARIOS DENTRO DE LA APP</h2>
             </div>
             <form class="form py-5" method = "POST" actions="">
 
                 {% csrf_token %}
 
-                <div class="form__field form__field--1">
-                    <label class="form__name-label form-label" for="input-name">Nombres</label>
+                <div class="form-group">
+                    <label class="form__name-label form-label" for="input-name">Agregar el nombre completo del usuario a crear </label>
                     <br>
                     {{form.first_name}}
                 </div>
     
-                <div class="form__field form__field--2">
-                    <label class="form__surnames-label form-label" for="input-surnames">Apellidos</label>
+                <div class="form-group">
+                    <label class="form__surnames-label form-label" for="input-surnames">Agregar los apellidos del usuario a crear</label>
                     <br>
                     {{form.last_name}}
                 </div>
     
-                <div class="form__field form__field--3">
-                    <label class="form__username-label form-label" for="input-username">Nombre de usuario</label>
+                <div class="form-group">
+                    <label class="form__username-label form-label" for="input-username">Agregue un nombre de usuario</label>
                     <br>
                     {{form.username}}
                 </div>
     
-                <div class="form__field form__field--4">
-                    <label class="form__rol-label form-label" for="input-rol">Rol</label>
+                <div class="form-group">
+                    <label class="form__rol-label form-label" for="input-rol">Agregue el rol del usuario a crear</label>
                     <br>
-                    <select name="rol" required>
+                    <select class="form-select" name="rol" required>
                         <option value="0">Gerente</option>
                         <option value="1">Administrador de CVS</option>
                         <option value="2">Asesor comercial</option>
                         <option value="3">Operario</option>
                     </select>
                 </div>
-
-                <!-- <div class="form__field form__field--4">
-                    <label class="form__rol-label form-label" for="input-rol">CVS</label>
-                    <br>
-                    <select name="cvs" required>
-                        <option value="0">Medellín</option>
-                        <option value="1">Bogotá</option>
-                    </select>
-                </div> -->
     
-                <div class="form__field form__field--5">
-                    <label class="form__email-label form-label" for="input-email">Correo</label>
+                <div class="form-group">
+                    <label class="form__email-label form-label" for="input-email">Agregue el correo del usuario a crear</label>
                     <br>
                     {{form.email}}
                 </div>
     
-                <div class="form__field form__field--6">
-                    <label class="form__password-label form-label" for="input-password">Contraseña</label>
+                <div class="form-group">
+                    <label class="form__password-label form-label" for="input-password">Agregue la contraseña del usuario a crear</label>
                     <br>
                     {{form.password1}}
                 </div>
     
-                <div class="form__field form__field--7">
-                    <label class="form__confirm-password-label form-label" for="input-confirm-password">Confirmar contraseña</label>
+                <div class="form-group">
+                    <label class="form__confirm-password-label form-label" for="input-confirm-password">Confirme la contraseña</label>
                     <br>
                     {{form.password2}}
                 </div>
 
                 <br>
-                <div class="form__field form__field--9 text-center my-0">
-                    <button class="form__button btn btn-primary btn-lg btn-outline-light" type="submit">Enviar</button>
+                <div class="form-group text-center my-0">
+                    <button class="form__button btn btn-secondary btn-outline-light btn-lg" type="submit">Enviar</button>
                 </div>
 
             </form>

@@ -5,12 +5,6 @@ from . import views
 
 urlpatterns = [
     path('', views.login_page, name='login'),
-    
-    # HOME PAGES
-    path('manager/',views.home_manager,name='home_manager'),
-    path('admin/',views.home_admin,name='home_admin'),
-    path('adviser/',views.home_adviser,name='home_adviser'),
-    path('operator/',views.home_operator,name='home_operator'),
 
     # FUNCIONALITIES
     path('reports/',views.reports,name='reports'),
@@ -32,5 +26,4 @@ urlpatterns = [
     path('validate_turn/', views.validate_turn, name='validate_turn'),
     path('confirm_validation/',views.confirm_validation,name='confirm_validation'),
     path('logout/', logout_then_login, name='logout'),
-
 ]
