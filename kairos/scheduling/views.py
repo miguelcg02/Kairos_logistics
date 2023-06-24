@@ -46,16 +46,16 @@ def login_page(request):
 
             if role == 0:
                 context = {'role':role}
-                return render(request,template_name="0-reports.html", context=context)
+                return redirect('reports')
             elif role == 1:
                 context = {'role':role}
-                return render(request,template_name="1-2-3-see_schedules.html", context=context)
+                return redirect('see_schedules')
             elif role == 2:
                 context = {'role':role}
-                return render(request,template_name="1-2-3-see_schedules.html", context=context)
+                return redirect('see_schedules')
             elif role == 3:
                 context = {'role':role}
-                return render(request,template_name="1-2-3-see_schedules.html", context=context)
+                return redirect('see_schedules')
             else:
                 messages.error(request, 'Ocurrio un error inesperado!')
                 return redirect('login')
