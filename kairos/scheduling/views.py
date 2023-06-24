@@ -1001,7 +1001,12 @@ def recommendTurns(cvs,duration):
 
         dateTurns=Turn.objects.filter(cvs__name=cvs).filter(date=actualDate).order_by('hour')
 
-        begHour=timedelta(hours=7,minutes=45)
+        if (not contDay):
+            begHour=datetime.today()
+            begHour=timedelta(hours=begHour.hour,minutes=begHour.minute)
+        else:
+            begHour=timedelta(hours=7,minutes=45)
+
         for turn in dateTurns:
             toCheck=begHour+timedelta(minutes=duration)
             li=timedelta(hours=turn.hour.hour,minutes=turn.hour.minute)
@@ -1137,6 +1142,11 @@ def valDateHour(request,cvs,dateF,hour,duration,modAs,exclude, block):#mod=0,As=
     begHour=timedelta(hours=hour.hour,minutes=hour.minute)
     endHour=begHour+timedelta(minutes=duration)
 
+    #turns must be scheduled after now (just for assignment)
+    nowDate=datetime.today()
+    if(modAs and dateF==date.today() and begHour<timedelta(hours=nowDate.hour,minutes=nowDate.minute)):
+        problems=True
+        messages.error(request,"El servicio no puede asignarse a una hora ya pasada")
     if not(block):
         #turn must not be earlier than 7:45 nor later than 17:15
         if(begHour<timedelta(hours=7,minutes=45)):
