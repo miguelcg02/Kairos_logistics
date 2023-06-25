@@ -26,29 +26,31 @@
 {% block content %}
     <div class="full-container">
         <div class="sc-displayer">
-            <h2>Previsualización del horario</h2>
+            <h2>Visualización del horario</h2>
             {% if cvsName %} 
                 {% include 'base_schedule.html' %}
             {% endif %}
         </div>
         <div class="form-displayer">
-            <!-- section to select the cvs -->
-            <form style="margin: 2em;" action="{% url 'block_schedule' %}" method="post">
-                {%csrf_token%}
-                <h2>Selección de CVS</h2>
-                <div class="form-floating">
-                    <select class="form-select" id="sc-select" name="cvsName" aria-label="select cvs">
-                        <option selected>{{cvsName}}</option><!--for this item we cannot put accents - or change BBDD-->
-                        {% for cvs in listCVSs %}
-                        <option value="{{cvs}}">{{cvs}}</option>
-                        {% endfor %}
-                    </select>
-                    <label for="sc-select">Visualizando horario de:</label>
-                </div>
-                <div style="display: flex;justify-content: end;">
-                    <button type="submit" class="btn btn-secondary btn-outline-light ">Ver</button>
-                </div>
-            </form>
+            {% if role == 0 %}
+                <!-- section to select the cvs -->
+                <form style="margin: 2em;" action="{% url 'block_schedule' %}" method="post">
+                    {%csrf_token%}
+                    <h2>Selección de CVS</h2>
+                    <div class="form-floating">
+                        <select class="form-select" id="sc-select" name="cvsName" aria-label="select cvs">
+                            <option selected>{{cvsName}}</option><!--for this item we cannot put accents - or change BBDD-->
+                            {% for cvs in listCVSs %}
+                            <option value="{{cvs}}">{{cvs}}</option>
+                            {% endfor %}
+                        </select>
+                        <label for="sc-select">Visualizando horario de:</label>
+                    </div>
+                    <div style="display: flex;justify-content: end;">
+                        <button type="submit" class="btn btn-secondary btn-outline-light ">Ver</button>
+                    </div>
+                </form>
+            {% endif %}
             {% if cvsName %} 
                 <div class="form-displayer">
                     <!-- section to see the calculated time for the service -->

@@ -98,9 +98,22 @@ def block_schedule(request):
 
         return render(request,template_name="0-1-block_schedule.html", context={'cvsName':cvsName,'sc_days':sc_days,'listCVSs':listCVSs,'minDate':minDate,'role':getRole(request)})
     else:
-        #cvs' names for the combo box
-        listCVSs=listCVS('')
-    return render(request,template_name="0-1-block_schedule.html", context={'listCVSs':listCVSs,'role':getRole(request)})
+        if(getRole(request)==1):
+            #we take the name of the admin -> cvsName
+            cvsName=request.user.first_name
+            #events' array (freetime and services) for the context
+            sc_days=toSee_schedules(cvsName)
+            #cvs' names for the combo box already selected
+            listCVSs=listCVS(cvsName)
+
+            minDate=date.today().isoformat()
+            
+            return render(request,template_name="0-1-block_schedule.html", context={'cvsName':cvsName,'sc_days':sc_days,'listCVSs':listCVSs,'minDate':minDate,'role':getRole(request)})
+
+        else:
+            #cvs' names for the combo box
+            listCVSs=listCVS('')
+            return render(request,template_name="0-1-block_schedule.html", context={'listCVSs':listCVSs,'role':getRole(request)})
 
 @login_required(login_url='')
 def block(request):
