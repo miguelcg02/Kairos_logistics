@@ -1429,6 +1429,12 @@ def modify_turn(request):
     nameCustomer= turn.nameCustomer
     telCustomer= turn.telCustomer
     comment=turn.comment
+    #450 because we have to keep the space for 
+    # - the new line 
+    # - the carriage return
+    # - the header Mod _nameAdmin_:
+    # - validation comment
+    maxComment = 450-len(comment)
     #limit for the date input
     if(date.today().weekday==6):
         maxDate=(date.today()+timedelta(days=7)).isoformat()
@@ -1452,6 +1458,7 @@ def modify_turn(request):
         'nameCustomer':nameCustomer,
         'telCustomer':telCustomer,
         'comment':comment,
+        'maxComment':maxComment,
         'maxDate':maxDate,
         'role':getRole(request)})
 
@@ -1510,7 +1517,7 @@ def confirm_modify(request):
         modTurn.telCustomer=_telCustomer
         modTurn.modifiedBy=Profile.objects.get(user=request.user)
         modTurn.dateModified=datetime.now()
-        modTurn.comment=request.POST.get('comment')
+        modTurn.comment+="\nMod-"+Profile.objects.get(user=request.user).user.username+":\n"+request.POST.get('newComment')
 
         modTurn.save()
         messages.success(request,"Se actualizó correctamente el turno en CVS: "+_cvs+" para el día "+_date.strftime("%d/%m/%Y")+" a las "+_hour.strftime("%I:%M %p"))

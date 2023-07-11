@@ -44,7 +44,7 @@ class Turn(models.Model):
     modifiedBy = models.ForeignKey(Profile,on_delete=models.CASCADE,blank=True,related_name="person_who_modifies", null=True)  # person who modified the service 
     dateModified = models.DateTimeField(auto_now=False, auto_now_add=False,blank=True, null=True) #date when the service was modified 
     done = models.BooleanField(blank=True, null=True) # verification if the service get done
-    comment = models.TextField(max_length=300,blank=True, null=True) # comment about the service or the reason to don't provide the service
+    comment = models.TextField(max_length=500,blank=True, null=True, default="") # comment about the service or the reason to don't provide the service
 
     class Meta:
         verbose_name = "turn"

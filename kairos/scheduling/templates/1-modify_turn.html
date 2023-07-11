@@ -106,10 +106,21 @@
                 <label for="telCustomer">Teléfono de contacto</label>
             </div>
             <h2>Especificación del cambio del turno</h2>
+            {% if comment %}
             <div class="input-group">
-                <label class="input-group-text" for="comment">Explique por qué se está modificando el servicio</label>
-                <textarea class="form-control" type="text" name="comment" id="comment" maxlength="300" required>{{comment}}</textarea>
+                <label class="input-group-text" for="comment">Comentarios anteriores sobre el servicio</label>
+                <textarea class="form-control" type="text" name="comment" id="comment" required readonly>{{comment}}</textarea>
             </div>
+            <div class="input-group">
+                <label class="input-group-text" for="newComment">Explique por qué se está modificando el servicio</label>
+                <textarea class="form-control" type="text" name="newComment" id="newComment" maxlength="{{maxComment}}" required></textarea>
+            </div>
+            {% else %}
+            <div class="input-group">
+                <label class="input-group-text" for="newComment">Explique por qué se está modificando el servicio</label>
+                <textarea class="form-control" type="text" name="newComment" id="newComment" maxlength="450" required></textarea>
+            </div>
+            {% endif %}
             <!-- start confirm modal -->
             <div style="display: flex; justify-content: center; gap: 1em; flex-wrap: wrap;">
                 <!-- Button trigger modal -->
