@@ -1620,6 +1620,11 @@ def validate_turn(request):
     nameCustomer= turn.nameCustomer
     telCustomer= turn.telCustomer
     comment=turn.comment
+    #480 because we have to keep the space for 
+    # - the new line 
+    # - the carriage return
+    # - the header Val _nameAdmin_:
+    maxComment = 480-len(comment)
     done = turn.done
     #limit for the date input
     if(date.today().weekday==6):
@@ -1646,6 +1651,7 @@ def validate_turn(request):
         'comment':comment,
         'done':done,
         'maxDate':maxDate,
+        'maxComment':maxComment,
         'role':getRole(request)})
 
 @login_required(login_url='')
@@ -1655,11 +1661,6 @@ def confirm_validation(request):
         return redirect(warningPage)
     
     _cvs= request.POST.get('cvsName')
-    _comment= request.POST.get('comment')
-    if(_comment):
-        _comment=_comment
-    else:
-        _comment=""
     _newComment= request.POST.get('newComment')
     _done= request.POST.get('done')
     if(_done):
@@ -1674,8 +1675,8 @@ def confirm_validation(request):
     modTurn.done=_done
     modTurn.modifiedBy=Profile.objects.get(user=request.user)
     modTurn.dateModified=datetime.now()
-    modTurn.comment=_comment + " - " + _newComment
+    modTurn.comment+="\nVal-"+Profile.objects.get(user=request.user).user.username+":\n"+_newComment
 
     modTurn.save()
-    messages.success(request,"Se actualizó correctamente el turno en CVS: "+_cvs+" para el día "+_date.strftime("%d/%m/%Y")+" a las "+_hour.strftime("%I:%M %p"))
+    messages.success(request,"Se actualizó correctamente el turno en CVS: "+_cvs+" del día "+_date.strftime("%d/%m/%Y")+" a las "+_hour.strftime("%I:%M %p"))
     return redirect('see_schedules')

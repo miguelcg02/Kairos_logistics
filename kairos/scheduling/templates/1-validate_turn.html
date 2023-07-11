@@ -111,16 +111,16 @@
             {% if comment %}
             <div class="input-group">
                 <label class="input-group-text" for="comment">Comentarios anteriores sobre el servicio</label>
-                <textarea class="form-control" type="text" name="comment" id="comment" maxlength="300" required readonly>{{comment}}</textarea>
+                <textarea class="form-control" type="text" name="comment" id="comment" required readonly>{{comment}}</textarea>
             </div>
             <div class="input-group">
                 <label class="input-group-text" for="newComment">Si desea añadir comentarios sobre el servicio por favor escriba acá</label>
-                <textarea class="form-control" type="text" name="newComment" id="newComment" maxlength="300" required></textarea>
+                <textarea class="form-control" type="text" name="newComment" id="newComment" maxlength="{{maxComment}}" required></textarea>
             </div>
             {% else %}
             <div class="input-group">
                 <label class="input-group-text" for="newComment">Comentarios sobre el servicio</label>
-                <textarea class="form-control" type="text" name="newComment" id="newComment" maxlength="300" required></textarea>
+                <textarea class="form-control" type="text" name="newComment" id="newComment" maxlength="480" required></textarea>
             </div>
             {% endif %}
             <!-- start confirm modal -->
