@@ -3,7 +3,7 @@
 
 {% block styles %}
 <link rel="stylesheet" href="{% static 'schedules.css'%}">
-<link rel="stylesheet" href="{% static 'sel_mod_turn.css'%}">
+<link rel="stylesheet" href="{% static 'sel_mod_turns.css'%}">
 <script src="{% static 'hide.js'%}"></script>
 {% endblock %}
 
@@ -25,13 +25,14 @@
 
 {% block content %}
     <div class="full-container">
-        <div class="sc-displayer">
+        {% include 'btnResponsive.html' %}
+        <div class="sc-displayer" id="sc-displayer">
             <h2>Visualización del horario</h2>
             {% if cvsName %} 
                 {% include 'base_schedule.html' %}
             {% endif %}
         </div>
-        <div class="form-displayer">
+        <div class="form-displayer" id="form-displayer">
             {% if role == 0 %}
                 <!-- section to select the cvs -->
                 <form style="margin: 2em;" action="{% url 'block_schedule' %}" method="post">
@@ -52,7 +53,7 @@
                 </form>
             {% endif %}
             {% if cvsName %} 
-                <div class="form-displayer">
+                <div class="form-displayer" id="form-displayer">
                     <!-- section to see the calculated time for the service -->
                     <form style="margin-left:2em; margin-right: 2em;" action="{% url 'block' %}" method="post">
                         {%csrf_token%}

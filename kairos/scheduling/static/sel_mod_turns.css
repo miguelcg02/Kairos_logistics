@@ -1,0 +1,93 @@
+.full-container{
+    display: grid;
+    grid-template-columns: 2fr 1fr;
+}
+
+.sc-displayer{
+    text-align: center;
+}
+
+.form-displayer{
+    background-color: #c1c1c1;
+}
+
+form div{
+    margin-bottom: 0.5em;
+}
+
+.btn-confirm{
+    background-color: #E9862F; 
+    color: white;
+}
+
+.btn-confirm:hover{
+    background-color: #d17728;
+    color: white;
+}
+
+.btn-confirm:active , .btn-confirm:focus{
+    box-shadow:0 0 0 .25rem #E9862F94;
+    color: white;
+}
+
+.form-displayer-modify{
+    background-color: #c1c1c1;
+    margin: 2em;
+    border-radius: 2em;
+}
+
+button{
+    width: 82px;
+    margin-top: 0.5em;
+}
+
+a.bookmark{
+    z-index: 1;
+    position: fixed;
+    padding: 2.5%;
+    margin: 4.5em 5px;
+    width: 3em;
+    height: 3em;
+    
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    color: white;
+    background-color: rgba(233, 134, 47, 0.5);
+}
+
+a.bookmark:hover, a.bookmark:active{
+    background-color: rgb(233, 134, 47);
+    cursor: pointer;
+}
+
+#btn-up{
+    
+    display: none;
+    top: 0;
+    right: 0;
+    
+    border-radius: 3px 3px 0 0;
+}
+
+#btn-down{
+    
+    display: none;
+    top: 3em;
+    right: 0;
+
+    border-radius:  0 0 3px 3px;
+}
+
+@media screen and (max-width: 700px) {
+    .full-container{
+        display: flex;
+        flex-direction: column-reverse;
+    }
+
+    #btn-up,#btn-down{
+        display: flex;
+    }
+
+}

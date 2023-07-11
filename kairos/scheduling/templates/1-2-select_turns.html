@@ -3,7 +3,7 @@
 
 {% block styles %}
 <link rel="stylesheet" href="{% static 'schedules.css'%}">
-<link rel="stylesheet" href="{% static 'sel_mod_turn.css'%}">
+<link rel="stylesheet" href="{% static 'sel_mod_turns.css'%}">
 {% endblock %}
 
 {% block title %}
@@ -32,13 +32,14 @@
 
 {% block content %}
     <div class="full-container">
-        <div class="sc-displayer">
+        {% include 'btnResponsive.html' %}
+        <div class="sc-displayer" id="sc-displayer">
             <h2>Previsualización del horario</h2>
             {% if cvsName %} 
                 {% include 'base_schedule.html' %}
             {% endif %}
         </div>
-        <div class="form-displayer">
+        <div class="form-displayer" id="form-displayer">
             <!-- section to see the calculated time for the service -->
             <form style="margin:  2em;" action="{% url 'confirm_turns' %}" method="post">
                 {%csrf_token%}
