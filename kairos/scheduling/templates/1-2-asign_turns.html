@@ -11,26 +11,6 @@
     Asignar turnos
 {% endblock %}
 
-<!-- Selecting navbar -->
-{% block navbar %}
-    <!-- IF MANAGER -->
-    {% if role == 0 %}
-        {% include '0-manager/navbar-manager.html' %} 
-    {% endif %}
-    <!-- IF ADMIN -->
-    {% if role == 1 %}
-        {% include '1-admin\navbar-admin.html' %} 
-    {% endif %}
-    <!-- IF ADVISER -->
-    {% if role == 2 %}
-        {% include '2-adviser\navbar-adviser.html' %} 
-    {% endif %}
-    <!-- IF OPERATOR -->
-    {% if role == 3 %}
-        {% include '3-operator\navbar-operator.html' %} 
-    {% endif %}
-{% endblock %}
-
 {% block content %}
     <div class="full-container">
         {% include 'btnResponsive.html' %} 

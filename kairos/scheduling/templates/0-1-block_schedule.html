@@ -11,18 +11,6 @@
     Bloquear horarios
 {% endblock %}
 
-<!-- Selecting navbar -->
-{% block navbar %}
-    <!-- IF MANAGER -->
-    {% if role == 0 %}
-        {% include '0-manager/navbar-manager.html' %} 
-    {% endif %}
-    <!-- IF ADMIN -->
-    {% if role == 1 %}
-        {% include '1-admin\navbar-admin.html' %} 
-    {% endif %}
-{% endblock %}
-
 {% block content %}
     <div class="full-container">
         {% include 'btnResponsive.html' %}
