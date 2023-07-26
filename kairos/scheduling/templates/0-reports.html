@@ -54,7 +54,7 @@
                     <div class="row">
                         <div class="form-group">
                             <label class="control-label fw-bold">CVS</label>
-                            <select id="cvsOptions" name="cvsOptions" class="form-control selectpicker" multiple data-live-search="true" placeholder="Seleccione los CVS..." required>
+                            <select id="cvsOptions" name="cvsOptions" class="form-control selectpicker" multiple data-actions-box="true" selectAllText='Seleccionar todos' deselectAllText='Deseleccionar todos' data-live-search="true" placeholder="Seleccione los CVS..." required>
                                 {% for cvs in allCvs %}
                                     <option value="{{cvs.name}}">{{ cvs.name }}</option>
                                 {% endfor %} 
@@ -121,7 +121,11 @@
                 {% for q in query %}
                 <tr>
                     <td>{{q.date}}</td>
-                    <td>{{q.hour}}</td>
+                    {% if q.hour == ' noon ' %}
+                        <td>12:00 pm</td>
+                    {% else %}
+                        <td>{{q.hour}}</td>
+                    {% endif %}
                     <td>{{q.cvs.name}}</td>
                     <td>{{q.bill}}</td>
                     <td>{{q.idCustomer}}</td>
